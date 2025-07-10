@@ -1,0 +1,176 @@
+#ifndef augmented_ast_h
+#define augmented_ast_h
+#include "ast.h"
+#include "intset.h"
+
+/*
+
+A Regular Expression is Augmented with a special "END" marker - '#'.
+    re   ->  (re)#
+
+An AST is then built for the augmented re.
+
+The nodes are numbered, and the we calculate the following sets:
+
+Firstpos:
+Identifies the set of positions (leaf nodes) that can be the first symbol in a string derived from that node.
+
+Lastpos:
+Identifies the set of positions that can be the last symbol in a string derived from that node.
+
+Followpos:
+Defines how positions relate to each other during DFA state transitions. It determines which positions can follow a given position in a string. 
+
+nullable: returns true for nodes which can represent the empty set (epsilon)
+
+
+From the Followpos table, we can build a DFA to recognize the provided regular expression.
+
+
+*/
+
+
+int isLeaf(re_ast* node) {
+    return (node->left == NULL && node->right == NULL);
+}
+
+int numleaves = 0;
+int nonleaves = 0;
+
+void number_nodes(re_ast* node, int pass) {
+    if (node != NULL) {
+        number_nodes(node->left, pass);
+        number_nodes(node->right, pass);
+        if (isLeaf(node)) {
+            if (pass == 1)
+                node->number = ++numleaves;
+        } else {
+            if (pass == 2)
+                node->number = ++nonleaves;
+        }
+    }
+}
+
+bool nullable(re_ast* node) {
+    if (node == NULL)
+        return false;
+    if (isLeaf(node) && node->number > 0)
+        return false;
+    if (node->token.symbol == RE_OR)
+        return nullable(node->left) || nullable(node->right);
+    if (node->token.symbol == RE_CONCAT) {
+        return nullable(node->left) && nullable(node->right);
+    }
+    if (node->token.symbol == RE_STAR)
+        return true;
+    return false;
+}
+
+Set** firstpos;
+Set** lastpos;
+Set** followpos;
+
+void initAttributeSets() {
+    firstpos = malloc(sizeof(Set*)*nonleaves+1);
+    lastpos = malloc(sizeof(Set*)*nonleaves+1);
+    followpos = malloc(sizeof(Set*)*nonleaves+1);
+    for (int i = 0; i < nonleaves+1; i++) {
+        firstpos[i] = malloc(sizeof(Set));
+        initSet(firstpos[i]);
+        lastpos[i] = malloc(sizeof(Set));
+        initSet(lastpos[i]);
+        followpos[i] = malloc(sizeof(Set));
+        initSet(followpos[i]);
+    }
+}
+
+void mergeFirstPos(re_ast* node) {
+    if (node->left) {
+        setUnion(firstpos[node->number], firstpos[node->left->number]);
+    }
+    if (node->right) {
+        setUnion(firstpos[node->number], firstpos[node->right->number]);
+    }
+}
+
+void mergeLastPos(re_ast* node) {
+    if (node->left) {
+        setUnion(lastpos[node->number], lastpos[node->left->number]);
+    }
+    if (node->right) {
+        setUnion(lastpos[node->number], lastpos[node->right->number]);
+    }
+}
+
+/*
+
+Firstpos:
+Identifies the set of positions (leaf nodes) that can be the first symbol in a string derived from that node.
+Lastpos:
+Identifies the set of positions that can be the last symbol in a string derived from that node.
+
+*/
+
+void calcFirstandLastPos(re_ast* node) {
+    if (node != NULL) {
+        calcFirstandLastPos(node->left);
+        calcFirstandLastPos(node->right);
+        if (isLeaf(node)) {
+            addSet(firstpos[node->number], node->number);
+            addSet(lastpos[node->number], node->number);
+        } else if (node->token.symbol == RE_OR) {
+            mergeFirstPos(node);
+            mergeLastPos(node);
+        } else if (node->token.symbol == RE_CONCAT) {
+            if (nullable(node->left)) {
+                mergeFirstPos(node);
+            } else if (node->left) {
+                setUnion(firstpos[node->number], firstpos[node->left->number]);
+            }
+            if (nullable(node->right)) {
+                mergeLastPos(node);
+            } else if (node->right) {
+                setUnion(lastpos[node->number], lastpos[node->right->number]);
+            }
+        } else if (node->token.symbol == RE_STAR && node->left) {
+            setUnion(firstpos[node->number], firstpos[node->left->number]);
+            setUnion(lastpos[node->number], lastpos[node->left->number]);
+        }
+    }
+}
+
+/*
+Followpos:
+Defines how positions relate to each other during DFA state transitions. It determines which positions can follow a given position in a string. 
+*/
+
+void calcFollowPos(re_ast* node) {
+    if (node == NULL)
+        return;
+    calcFollowPos(node->left);
+    calcFollowPos(node->right);
+    if (node->token.symbol == RE_CONCAT) {
+        for (int i = 0; i < lastpos[node->left->number]->n; i++) {
+            int t = lastpos[node->left->number]->members[i];
+            setUnion(followpos[t], firstpos[node->right->number]);
+        }
+    }
+    if (node->token.symbol == RE_STAR) {
+        for (int i = 0; i < lastpos[node->number]->n; i++) {
+            int t = lastpos[node->number]->members[i];
+            setUnion(followpos[t], firstpos[node->number]);
+        }
+    }
+}
+
+void computeFollowPos(re_ast* node) {
+    numleaves = 0;
+    number_nodes(node, 1);
+    nonleaves = numleaves;
+    number_nodes(node, 2);
+    initAttributeSets();
+    calcFirstandLastPos(node);
+    calcFollowPos(node);
+}
+
+#endif
