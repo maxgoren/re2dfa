@@ -54,7 +54,9 @@ void number_nodes(re_ast* node, int pass) {
 bool nullable(re_ast* node) {
     if (node == NULL)
         return false;
-    if (isLeaf(node) && node->number > 0)
+    if (isLeaf(node) && node->token.symbol == RE_EPSILON)
+        return true;
+    if (isLeaf(node) && node->token.symbol == RE_CHAR)
         return false;
     if (node->token.symbol == RE_OR)
         return nullable(node->left) || nullable(node->right);
@@ -76,29 +78,29 @@ void initAttributeSets() {
     followpos = malloc(sizeof(Set*)*nonleaves+1);
     for (int i = 0; i < nonleaves+1; i++) {
         firstpos[i] = malloc(sizeof(Set));
-        initSet(firstpos[i]);
+        initSet(firstpos[i], nonleaves+1);
         lastpos[i] = malloc(sizeof(Set));
-        initSet(lastpos[i]);
+        initSet(lastpos[i], nonleaves+1);
         followpos[i] = malloc(sizeof(Set));
-        initSet(followpos[i]);
+        initSet(followpos[i], nonleaves+1);
     }
 }
 
 void mergeFirstPos(re_ast* node) {
     if (node->left) {
-        setUnion(firstpos[node->number], firstpos[node->left->number]);
+        firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->left->number]);
     }
     if (node->right) {
-        setUnion(firstpos[node->number], firstpos[node->right->number]);
+        firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->right->number]);
     }
 }
 
 void mergeLastPos(re_ast* node) {
     if (node->left) {
-        setUnion(lastpos[node->number], lastpos[node->left->number]);
+        lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->left->number]);
     }
     if (node->right) {
-        setUnion(lastpos[node->number], lastpos[node->right->number]);
+        lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->right->number]);
     }
 }
 
@@ -125,16 +127,16 @@ void calcFirstandLastPos(re_ast* node) {
             if (nullable(node->left)) {
                 mergeFirstPos(node);
             } else if (node->left) {
-                setUnion(firstpos[node->number], firstpos[node->left->number]);
+                firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->left->number]);
             }
             if (nullable(node->right)) {
                 mergeLastPos(node);
             } else if (node->right) {
-                setUnion(lastpos[node->number], lastpos[node->right->number]);
+                lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->right->number]);
             }
         } else if (node->token.symbol == RE_STAR && node->left) {
-            setUnion(firstpos[node->number], firstpos[node->left->number]);
-            setUnion(lastpos[node->number], lastpos[node->left->number]);
+            firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->left->number]);
+            lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->left->number]);
         }
     }
 }
@@ -147,18 +149,27 @@ Defines how positions relate to each other during DFA state transitions. It dete
 void calcFollowPos(re_ast* node) {
     if (node == NULL)
         return;
+    if (node->token.symbol == RE_CONCAT) {
+        if (!node->left || !node->right) {
+            printf("ERROR: RE_CONCAT node %d missing children (left=%p, right=%p)\n",
+                   node->number, (void*)node->left, (void*)node->right);
+            return;
+        }
+    }
     calcFollowPos(node->left);
     calcFollowPos(node->right);
     if (node->token.symbol == RE_CONCAT) {
+        if (node->left == NULL || node->right == NULL)
+            return;
         for (int i = 0; i < lastpos[node->left->number]->n; i++) {
             int t = lastpos[node->left->number]->members[i];
-            setUnion(followpos[t], firstpos[node->right->number]);
+            followpos[t] = setUnion(followpos[t], firstpos[node->right->number]);
         }
     }
     if (node->token.symbol == RE_STAR) {
         for (int i = 0; i < lastpos[node->number]->n; i++) {
             int t = lastpos[node->number]->members[i];
-            setUnion(followpos[t], firstpos[node->number]);
+            followpos[t] = setUnion(followpos[t], firstpos[node->number]);
         }
     }
 }

@@ -17,7 +17,7 @@ char* addConCat(char* str) {
             continue;
         if (i+1 < strlen(str)) {
             char p = str[i+1];
-            if (p == '|' || p == '*' || p == '+' || p == ')')
+            if (p == '|' || p == '*' || p == '+' || p == '?' || p == ')')
                 continue;
             ns[j++] = '@';
         }
@@ -103,6 +103,17 @@ Token* in2post(Token* input) {
     return dummy.next;;
 }
 
+re_ast* cloneTree(re_ast* node) {
+    if (node == NULL)
+        return NULL;
+    re_ast* t = makeNode(node->type, node->token);
+    t->type = node->type;
+    t->token = node->token;
+    t->left = cloneTree(node->left);
+    t->right = cloneTree(node->right);
+    return t;
+}
+
 re_ast* makeTree(Token* tokens) {
     int len = tokensLength(tokens);
     re_ast* st[len];
@@ -113,11 +124,27 @@ re_ast* makeTree(Token* tokens) {
                 switch (it->symbol) {
                     case RE_OR:
                     case RE_CONCAT:
+                    if (sp < 2) {
+                            fprintf(stderr, "ERROR: stack underflow for binary operator %c\n", it->symbol);
+                            exit(EXIT_FAILURE);
+                        }
                         n->right = (sp > 0) ? st[--sp]:NULL;
                         n->left = (sp > 0) ? st[--sp]:NULL;
                         break;
-                    case RE_QUESTION:
-                    case RE_PLUS:
+                    case RE_QUESTION: {
+                        free(n);
+                        n = makeNode(1, *makeToken(RE_OR, '|'));
+                        n->left = (sp > 0) ? st[--sp]:NULL;
+                        n->right = makeNode(2, *makeToken(RE_EPSILON, NULL));
+                    } break;
+                    case RE_PLUS: {
+                        free(n);
+                        n = makeNode(1, *makeToken(RE_CONCAT, '@'));
+                        re_ast* operand = (sp > 0) ? st[--sp]:NULL;
+                        n->left = operand;
+                        n->right = makeNode(1, *makeToken(RE_STAR, '*'));
+                        n->right->left = cloneTree(operand);
+                    } break;
                     case RE_STAR: n->left = (sp > 0) ? st[--sp]:NULL;
                     default: break;
                 }
@@ -137,7 +164,8 @@ re_ast* re2ast(char* regex) {
     Token* postfix = in2post(tokenized);        <- convert token list from infix to postfix form via shunting yard
     re_ast* ast = makeTree(postfix);         <- create AST from postfix expression
     */
-    return makeTree(in2post(tokenize(addConCat(regex))));
+    Token* tokens = in2post(tokenize(addConCat(regex)));
+    return makeTree(tokens);
 }
 
 #endif

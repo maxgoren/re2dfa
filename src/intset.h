@@ -9,16 +9,42 @@ typedef struct {
     int maxN;
 } Set;
 
-void initSet(Set* set) {
-    set->maxN = 255;
+void initSet(Set* set, int maxsize) {
+    set->maxN = maxsize;
     set->n = 0;
     set->members = malloc(sizeof(int)*set->maxN);
 }
 
-Set* createSet() {
+Set* createSet(int size) {
     Set* s = malloc(sizeof(Set));
-    initSet(s);
+    initSet(s, size);
     return s;
+}
+
+void freeSet(Set* set) {
+    if (set == NULL)
+        return;
+    free(set->members);
+    free(set);
+}
+
+Set* resizeSet(Set* set, int newsize) {
+    int* nm = malloc(sizeof(int)*newsize);
+    for (int i = 0; i < set->n; i++) {
+        nm[i] = set->members[i];
+    }
+    free(set->members);
+    set->members = nm;
+    set->maxN = newsize;
+    return set;
+}
+
+Set* copySet(Set* a) {
+    Set* copy = createSet(a->maxN);
+    for (int i = 0; i < a->n; i++) {
+        copy->members[copy->n++] = a->members[i];
+    }
+    return copy;
 }
 
 bool isSetEmpty(Set* s) {
@@ -26,12 +52,9 @@ bool isSetEmpty(Set* s) {
 }
 
 int findSet(Set* set, int value) {
-    int l = 0, r = set->n-1;
-    while (l <= r) {
-        int i = (l+r)/2;
-        if (value < set->members[i]) r = i - 1;
-        else if (value > set->members[i]) l = i + 1;
-        else return i;
+    for (int i = 0; i < set->n; i++) {
+        if (set->members[i] == value)
+            return i;
     }
     return -1;
 }
@@ -39,11 +62,7 @@ int findSet(Set* set, int value) {
 void addSet(Set* set, int value) {
     int i = findSet(set, value);
     if (i == -1) {
-        int j = 0;
-        for (j = set->n; j > 0 && set->members[j-1] > value; j--) 
-            set->members[j] = set->members[j-1];
-        set->members[j] = value;
-        set->n++;
+        set->members[set->n++] = value;
     }
 }
 

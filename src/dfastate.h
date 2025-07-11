@@ -12,8 +12,7 @@ typedef struct {
 
 void initDState(DFAState* state, int statenum) {
     state->label = statenum;
-    state->positions = malloc(sizeof(Set));
-    initSet(state->positions);
+    state->positions = NULL;
     state->is_accepting = false;
 }
 

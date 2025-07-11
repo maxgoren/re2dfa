@@ -8,13 +8,13 @@
 enum RESymbol {
     RE_CHAR, RE_PERIOD, RE_LPAREN, RE_RPAREN,
     RE_STAR, RE_PLUS, RE_QUESTION, 
-    RE_CONCAT, RE_OR, RE_NONE
+    RE_CONCAT, RE_OR, RE_EPSILON, RE_NONE
 };
 
 char* RESymbolStr[] = {
     "CHAR", "PERIOD", "LPAREN", "RPAREN",
     "STAR", "PLUS", "QUESTION", 
-    "CONCAT", "OR", "NONE"
+    "CONCAT", "OR", "RE_EPSILON", "NONE"
 };
 
 typedef struct Token_ {
