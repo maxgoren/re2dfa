@@ -32,4 +32,6 @@ char* toString(Token* tokens);
 
 void printTokenStream(Token* tokens);
 
+void freeTokenStream(Token* tokens);
+
 #endif

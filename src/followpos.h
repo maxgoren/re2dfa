@@ -1,6 +1,6 @@
 #ifndef augmented_ast_h
 #define augmented_ast_h
-#include "ast.h"
+#include "../re2ast/src/ast.h"
 #include "intset.h"
 
 /*

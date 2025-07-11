@@ -19,4 +19,6 @@ void printAST(re_ast* node, int d);
 
 void freeTree(re_ast* node);
 
+re_ast* cloneTree(re_ast* node);
+
 #endif

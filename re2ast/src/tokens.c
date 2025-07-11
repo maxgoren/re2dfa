@@ -94,3 +94,13 @@ void printTokenStream(Token* tokens) {
         printf("<%d, %c>\n", it->symbol, it->ch);
     }
 }
+
+void freeTokenStream(Token* tokens) {
+    Token* head = tokens;
+    while (head != NULL) {
+        Token* x = head;
+        head = head->next;
+        x->next = NULL;
+        free(x);
+    }
+}

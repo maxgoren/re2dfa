@@ -96,17 +96,6 @@ Token* in2post(Token* input) {
     return dummy.next;;
 }
 
-re_ast* cloneTree(re_ast* node) {
-    if (node == NULL)
-        return NULL;
-    re_ast* t = makeNode(node->type, node->token);
-    t->type = node->type;
-    t->token = node->token;
-    t->left = cloneTree(node->left);
-    t->right = cloneTree(node->right);
-    return t;
-}
-
 re_ast* makeTree(Token* tokens) {
     int len = tokensLength(tokens);
     re_ast* st[len];
@@ -160,5 +149,7 @@ re_ast* re2ast(char* regex) {
     re_ast* ast = makeTree(postfix);         <- create AST from postfix expression
     */
     Token* tokens = in2post(tokenize(addConCat(regex)));
-    return makeTree(tokens);
+    re_ast* ast = makeTree(tokens);
+    freeTokenStream(tokens);
+    return ast;
 }

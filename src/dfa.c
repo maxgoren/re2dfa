@@ -160,6 +160,7 @@ void initAlphabetAndPositions(char* alphabet, char* posns, char* re) {
         if (is_char(re[i]))
             posns[p++] = re[i];
     }
-    printf("Alphabet: %s", alphabet);
-    printf("Positions: %s\n", posns);
+#ifdef DEBUG
+    printf("Alphabet: %s, Positions: %s\n", alphabet, posns);
+#endif
 }

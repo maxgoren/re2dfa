@@ -1,6 +1,4 @@
-#include "parser.h"
-#include "followpos.h"
-#include "dfa.h"
+#include "re_to_dfa.h"
 
 bool simulateDFA(DFA dfa, char* text) {
     DFAState* state = dfa.states[1];
@@ -29,17 +27,38 @@ bool simulateDFA(DFA dfa, char* text) {
     return state->is_accepting;
 }
 
+void cleanup(DFA* dfa, re_ast* ast) {
+    freeTree(ast);
+    for (int i = 1; i <= dfa->numstates; i++) {
+        freeSet(dfa->states[i]->positions);
+        free(dfa->states[i]);
+        Transition* head = dfa->dtrans[i];
+        while (head != NULL) {
+            Transition* x = head;
+            head = head->next;
+            free(x);
+        }
+    }
+    free(dfa->states);
+    free(dfa->dtrans);
+}
+
 char* augmentRE(char* orig) {
     char* fixed = malloc(sizeof(char)*strlen(orig)+3);
     sprintf(fixed, "(%s)#", orig);
     return fixed;
 }
 
+DFA re2dfa(char* re, re_ast* ast) {
+    computeFollowPos(ast);
+    DFA dfa = buildDFA(ast, toString(in2post(tokenize(re))));
+    return dfa;
+}
+
 bool matchDFA(char* re, char *text) {
     re = augmentRE(re);
     re_ast* ast = re2ast(re);
-    computeFollowPos(ast);
-    DFA dfa = buildDFA(ast, toString(in2post(tokenize(re))));
+    DFA dfa = re2dfa(re, ast);
 #ifdef DEBUG
     printf("AST: \n");
     printAST(ast, 1); 
@@ -51,16 +70,7 @@ bool matchDFA(char* re, char *text) {
     printf("DFA: \n");
     printDFA(dfa);
 #endif
-    return simulateDFA(dfa, text);
-}
-
-int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        printf("Usage: %s <re> <text>\n", argv[0]);
-        return 0;
-    }
-    if (matchDFA(argv[1], argv[2])) {
-        printf("Match found.\n");
-    }
-    return 0;
+    bool ans = simulateDFA(dfa, text);
+    cleanup(&dfa, ast);
+    return ans;
 }

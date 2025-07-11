@@ -18,6 +18,17 @@ void printAST(re_ast* node, int d) {
     }
 }
 
+re_ast* cloneTree(re_ast* node) {
+    if (node == NULL)
+        return NULL;
+    re_ast* t = makeNode(node->type, node->token);
+    t->type = node->type;
+    t->token = node->token;
+    t->left = cloneTree(node->left);
+    t->right = cloneTree(node->right);
+    return t;
+}
+
 void freeTree(re_ast* node) {
     if (node != NULL) {
         freeTree(node->left);
