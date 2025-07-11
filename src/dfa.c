@@ -34,22 +34,32 @@ Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol, char*
     Set* next_states = createSet(nonleaves+1);
     for (int i = 0; i < curr_state->positions->n; i++) {
         int t = curr_state->positions->members[i];
-        //printf("%c == %c?",  re[t-1], input_symbol);
-        if (re[t-1] == input_symbol) {
-            //printf(" Yep. Adding Set: %d\n",t);
+#ifdef DEBUG
+        printf("%c == %c?",  re[t-1], input_symbol);
+#endif
+        if (re[t-1] == input_symbol || re[t-1] == '.') {
+#ifdef DEBUG
+            printf(" Yep. Adding Set: %d\n",t);
+#endif
             setUnion(next_states, followpos[t]);
         } else {
-            //printf("Nope.\n");
+#ifdef DEBUG
+            printf("Nope.\n");
+#endif
         }
     }
     return next_states;
 }
 
 int findStateByPositions(DFA* dfa, Set* next_states) {
-    //printf("\nChecking if next_state exists... ");
+#ifdef DEBUG
+    printf("\nChecking if next_state exists... ");
+#endif
     for (int i = 1; i <= dfa->numstates; i++) {
         if (setsEqual(next_states, dfa->states[i]->positions)) {
+#ifdef DEBUG
             //printf("Yep. ");
+#endif
             return i;
         }
     }
@@ -57,9 +67,9 @@ int findStateByPositions(DFA* dfa, Set* next_states) {
 }
 
 int nextStateNum(DFA* dfa) {
-    dfa->numstates++;
-    return dfa->numstates;
+    return ++dfa->numstates;
 }
+
 DFA buildDFA(re_ast* ast, char* re) {
     int found;
     char* alphabet = malloc(sizeof(char)*strlen(re)); 
@@ -69,39 +79,52 @@ DFA buildDFA(re_ast* ast, char* re) {
     initAlphabetAndPositions(alphabet, posns, re);
     initDFA(&dfa,numleaves+1);
     addState(&dfa, createState(nextStateNum(&dfa), copySet(firstpos[ast->number])));
-    printSet(dfa.states[1]->positions);
     initQueue(&fq);
     enQueue(&fq,  dfa.states[1]);
     while (!emptyQueue(&fq)) {
         DFAState* curr_state = deQueue(&fq);
-        //printf("Current State: %d\n", curr_state->label);
+#ifdef DEBUG
+        printf("Current State: %d\n", curr_state->label);
+#endif
         for (char *input_symbol = alphabet; *input_symbol; input_symbol++) {
-            //printf("Input Symbol: %c\n", *input_symbol);
+#ifdef DEBUG
+            printf("Input Symbol: %c\n", *input_symbol);
+#endif
             Set* next_states = calculateNextStatesPositions(curr_state, *input_symbol, posns);
             if (!isSetEmpty(next_states)) {
                 if ((found = findStateByPositions(&dfa, next_states)) > -1) {
                     dfa.dtrans[curr_state->label] = addTransition(dfa.dtrans[curr_state->label], curr_state->label, dfa.states[found]->label, *input_symbol);
-                    //printf("State Already Exists, Adding Transition:  %d - (%c) - %d\n", curr_state->label, *input_symbol, dfa.states[found]->label);
+#ifdef DEBUG                    
+                    printf("State Already Exists, Adding Transition:  %d - (%c) - %d\n", curr_state->label, *input_symbol, dfa.states[found]->label);
+#endif
                     freeSet(next_states);
                 } else {
                     DFAState* new_state = createState(nextStateNum(&dfa), copySet(next_states)); 
                     addState(&dfa, new_state);
                     dfa.dtrans[curr_state->label] = addTransition(dfa.dtrans[curr_state->label], curr_state->label, new_state->label, *input_symbol);
-                    //printf("Adding new state: %d, Transition: %d - (%c) - %d\n", new_state->label, curr_state->label, *input_symbol, new_state->label);
                     enQueue(&fq, new_state);
+#ifdef DEBUG
+                    printf("Adding new state: %d, Transition: %d - (%c) - %d\n", new_state->label, curr_state->label, *input_symbol, new_state->label);
+#endif
                 }
             } else {
-                //printf("\nNext states list was empty.\n");
+#ifdef DEBUG
+                printf("\nNext states list was empty.\n");
+#endif
                 free(next_states);
             }
         }
-        //printf("\n----------------------------------------\n");
+#ifdef DEBUG
+        printf("\n----------------------------------------\n");
+#endif
     }
     int acpos = strlen(posns);
     for (int i = 1; i <= dfa.numstates; i++) {
-        if (findSet(dfa.states[i]->positions, acpos) > -1) {
+        if (setContains(dfa.states[i]->positions, acpos) > -1) {
             dfa.states[i]->is_accepting = true; 
-          //  printf("Marked %d as accepting state.\n", i);
+#ifdef DEBUG
+            printf("Marked %d as accepting state.\n", i);
+#endif
         }
     }
     return dfa;
@@ -137,4 +160,6 @@ void initAlphabetAndPositions(char* alphabet, char* posns, char* re) {
         if (is_char(re[i]))
             posns[p++] = re[i];
     }
+    printf("Alphabet: %s", alphabet);
+    printf("Positions: %s\n", posns);
 }

@@ -3,7 +3,7 @@
 void initSet(Set* set, int maxsize) {
     set->maxN = maxsize;
     set->n = 0;
-    set->members = malloc(sizeof(int)*set->maxN);
+    set->members = malloc(sizeof(int)*maxsize);
 }
 
 Set* createSet(int size) {
@@ -42,7 +42,7 @@ bool isSetEmpty(Set* s) {
     return s->n == 0;
 }
 
-int findSet(Set* set, int value) {
+int setContains(Set* set, int value) {
     for (int i = 0; i < set->n; i++) {
         if (set->members[i] == value)
             return i;
@@ -50,8 +50,8 @@ int findSet(Set* set, int value) {
     return -1;
 }
 
-void addSet(Set* set, int value) {
-    int i = findSet(set, value);
+void setAdd(Set* set, int value) {
+    int i = setContains(set, value);
     if (i == -1) {
         set->members[set->n++] = value;
     }
@@ -59,7 +59,7 @@ void addSet(Set* set, int value) {
 
 Set* setUnion(Set* a, Set* b) {
     for (int i = 0; i < b->n; i++) {
-        addSet(a, b->members[i]);
+        setAdd(a, b->members[i]);
     }
     return a;
 }

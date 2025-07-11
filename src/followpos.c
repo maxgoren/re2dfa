@@ -23,7 +23,7 @@ bool nullable(re_ast* node) {
         return false;
     if (isLeaf(node) && node->token.symbol == RE_EPSILON)
         return true;
-    if (isLeaf(node) && node->token.symbol == RE_CHAR)
+    if (isLeaf(node) && (node->token.symbol == RE_CHAR || node->token.symbol == RE_PERIOD))
         return false;
     if (node->token.symbol == RE_OR)
         return nullable(node->left) || nullable(node->right);
@@ -41,9 +41,9 @@ Set** lastpos;
 Set** followpos;
 
 void initAttributeSets() {
-    firstpos = malloc(sizeof(Set*)*nonleaves+1);
-    lastpos = malloc(sizeof(Set*)*nonleaves+1);
-    followpos = malloc(sizeof(Set*)*nonleaves+1);
+    firstpos = malloc(sizeof(Set*)*(nonleaves+1));
+    lastpos = malloc(sizeof(Set*)*(nonleaves+1));
+    followpos = malloc(sizeof(Set*)*(nonleaves+1));
     for (int i = 0; i < nonleaves+1; i++) {
         firstpos[i] = malloc(sizeof(Set));
         initSet(firstpos[i], nonleaves+1);
@@ -86,8 +86,8 @@ void calcFirstandLastPos(re_ast* node) {
         calcFirstandLastPos(node->left);
         calcFirstandLastPos(node->right);
         if (isLeaf(node)) {
-            addSet(firstpos[node->number], node->number);
-            addSet(lastpos[node->number], node->number);
+            setAdd(firstpos[node->number], node->number);
+            setAdd(lastpos[node->number], node->number);
         } else if (node->token.symbol == RE_OR) {
             mergeFirstPos(node);
             mergeLastPos(node);

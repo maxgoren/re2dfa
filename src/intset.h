@@ -23,9 +23,9 @@ Set* copySet(Set* a);
 
 bool isSetEmpty(Set* s);
 
-int findSet(Set* set, int value);
+int setContains(Set* set, int value);
 
-void addSet(Set* set, int value);
+void setAdd(Set* set, int value);
 
 Set* setUnion(Set* a, Set* b);
 

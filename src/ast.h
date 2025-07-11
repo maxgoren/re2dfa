@@ -15,6 +15,8 @@ typedef struct re_ast_ {
 
 re_ast* makeNode(int type, Token tk);
 
-void print(re_ast* node, int d);
+void printAST(re_ast* node, int d);
+
+void freeTree(re_ast* node);
 
 #endif
