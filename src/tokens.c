@@ -3,7 +3,7 @@
 char* RESymbolStr[] = {
     "CHAR", "PERIOD", "LPAREN", "RPAREN",
     "STAR", "PLUS", "QUESTION", 
-    "CONCAT", "OR", "RE_EPSILON", "NONE"
+    "CONCAT", "OR", "EPSILON", "NONE"
 };
 
 Token* makeToken(enum RESymbol sym, char ch) {
@@ -19,7 +19,7 @@ bool is_digit(char c) {
 }
 
 bool is_char(char c) {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '#';
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '#' || c == '.');
 }
 
 Token* tokenize(char* str) {

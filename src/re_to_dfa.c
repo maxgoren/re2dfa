@@ -8,21 +8,19 @@ bool simulateDFA(DFA dfa, char* text) {
         printf("Current State: %d, Input Symbol: %c\n", state->label, *sp);
         DFAState* next = NULL;
         for (Transition* it = dfa.dtrans[state->label]; it != NULL; it = it->next) {
-            if (*sp == it->ch) {
+            if (*sp == it->ch || it->ch == '.') {
                 next = dfa.states[it->to];
                 break;
             }
         }
-        if (next == NULL) {
+        if (!next) {
             printf("Out of transitions, No match.\n");
             return false;
-        } else state = next;
+        }
+        state = next;
     }
     printf("Final State: %d\n", state->label);
-    if (state->is_accepting) {
-        return true;
-    }
-    return false;
+    return state->is_accepting;
 }
 
 char* augmentRE(char* orig) {

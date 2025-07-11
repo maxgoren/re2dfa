@@ -117,11 +117,14 @@ re_ast* makeTree(Token* tokens) {
                 switch (it->symbol) {
                     case RE_OR:
                     case RE_CONCAT:
-                    if (sp < 2) {
+                        if (sp < 2) {
                             fprintf(stderr, "ERROR: stack underflow for binary operator %c\n", it->symbol);
                             exit(EXIT_FAILURE);
                         }
                         n->right = (sp > 0) ? st[--sp]:NULL;
+                        n->left = (sp > 0) ? st[--sp]:NULL;
+                        break;
+                    case RE_STAR: 
                         n->left = (sp > 0) ? st[--sp]:NULL;
                         break;
                     case RE_QUESTION: {
@@ -138,7 +141,6 @@ re_ast* makeTree(Token* tokens) {
                         n->right = makeNode(1, *makeToken(RE_STAR, '*'));
                         n->right->left = cloneTree(operand);
                     } break;
-                    case RE_STAR: n->left = (sp > 0) ? st[--sp]:NULL;
                     default: break;
                 }
                 st[sp++] = n;
