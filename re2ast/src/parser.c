@@ -12,6 +12,8 @@ char* addConCat(char* str) {
             char p = str[i+1];
             if (p == '|' || p == '*' || p == '+' || p == '?' || p == ')')
                 continue;
+            if (p == '.' || p == '\\' && str[i+2] == '.')
+                continue;
             ns[j++] = '@';
         }
     }

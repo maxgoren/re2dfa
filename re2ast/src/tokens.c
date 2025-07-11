@@ -31,15 +31,15 @@ bool is_char(char c) {
 Token* tokenize(char* str) {
     Token header; Token* t = &header;
     int sp = 0;
-    for (int i = 0; str[i] != '\0'; i++) {
-        if (is_digit(str[i]) || is_char(str[i])) {
-            t->next = makeToken(RE_CHAR, str[i]);
-            t = t->next;
-        } else if (str[i] == '\\' && str[i+1] == '.') {
+    for (int i = 0; str[i] != '\0'; i++) { 
+        if (str[i] == '\\' && str[i+1] == '.') {
             t->next = makeToken(RE_CHAR, '.');
             t = t->next;
         } else if (str[i] == '.') {
             t->next = makeToken(RE_PERIOD, str[i]);
+            t = t->next;
+        } else if (is_digit(str[i]) || is_char(str[i])) {
+            t->next = makeToken(RE_CHAR, str[i]);
             t = t->next;
         } else {
             switch (str[i]) {
