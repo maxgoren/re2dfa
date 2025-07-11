@@ -28,8 +28,9 @@ int precedence(char c) {
         case '+': return 50;
         case '?': return 50;
         case '*': return 50;
-        case '|': return 20;
         case '@': return 30;
+        case '|': return 20;
+
         default:
             break;
     }

@@ -42,21 +42,6 @@ bool isSetEmpty(Set* s) {
     return s->n == 0;
 }
 
-int setContains(Set* set, int value) {
-    for (int i = 0; i < set->n; i++) {
-        if (set->members[i] == value)
-            return i;
-    }
-    return -1;
-}
-
-void setAdd(Set* set, int value) {
-    int i = setContains(set, value);
-    if (i == -1) {
-        set->members[set->n++] = value;
-    }
-}
-
 Set* setUnion(Set* a, Set* b) {
     for (int i = 0; i < b->n; i++) {
         setAdd(a, b->members[i]);
@@ -64,14 +49,38 @@ Set* setUnion(Set* a, Set* b) {
     return a;
 }
 
-bool setsEqual(Set* a, Set* b) {
-    int i = 0, j = 0;
-    while (i < a->n && j < b->n) {
-        if (a->members[i] == b->members[j]) {
-            i++; j++;
-        } else return false;
+int setContains(Set* set, int value) {
+    int l = 0, r = set->n-1;
+    while (l <= r) {
+        int m = (l+r)/2;
+        if (value < set->members[m]) r = m - 1;
+        else if (value > set->members[m]) l = m + 1;
+        else return m;
     }
-    return i == a->n && j == b->n;
+    return -1;
+}
+
+void setAdd(Set* set, int value) {
+    int i = setContains(set, value);
+    if (i == -1) {
+        int j = set->n;
+        while (j > 0 && set->members[j-1] > value) {
+            set->members[j] = set->members[j-1];
+            j--;
+        }
+        set->members[j] = value;
+        set->n++;
+    }
+}
+
+bool setsEqual(Set* a, Set* b) {
+    if (a->n != b->n)
+        return false;
+    for (int j = 0; j < b->n; j++) {
+        if (a->members[j] != b->members[j])
+            return false;
+    }
+    return true;
 }
 
 void printSet(Set* set) {

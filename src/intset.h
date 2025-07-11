@@ -12,25 +12,15 @@ typedef struct {
 } Set;
 
 void initSet(Set* set, int maxsize);
-
 Set* createSet(int size);
-
 void freeSet(Set* set);
-
 Set* resizeSet(Set* set, int newsize);
-
 Set* copySet(Set* a);
-
 bool isSetEmpty(Set* s);
-
 int setContains(Set* set, int value);
-
 void setAdd(Set* set, int value);
-
 Set* setUnion(Set* a, Set* b);
-
 bool setsEqual(Set* a, Set* b);
-
 void printSet(Set* set);
 
 #endif

@@ -30,14 +30,26 @@ Transition* addTransition(Transition* trans, int from, int to, char ch) {
     return makeTransition(from, to, ch, trans);
 }
 
-Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol, char* re) {
+bool findInCharClass(char* ccl, char input_symbol) {
+    for (char *sp = ccl; *sp; sp++) {
+        if (*sp == input_symbol)
+            return true;
+    }
+    return false;
+}
+
+Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol, char* positions, char** ccl, enum RESymbol* posn_type) {
     Set* next_states = createSet(nonleaves+1);
     for (int i = 0; i < curr_state->positions->n; i++) {
         int t = curr_state->positions->members[i];
 #ifdef DEBUG
-        printf("%c == %c?",  re[t-1], input_symbol);
+        if (posn_type[t-1] == RE_CCL) {
+            printf("%c in %s?", input_symbol, ccl[t-1]);
+        } else {
+            printf("%c == %c?",  positions[t-1], input_symbol);
+        }
 #endif
-        if (re[t-1] == input_symbol || re[t-1] == '.') {
+        if ((posn_type[t-1] == RE_CCL && findInCharClass(ccl[t-1], input_symbol)) || (positions[t-1] == input_symbol || positions[t-1] == '.')) {
 #ifdef DEBUG
             printf(" Yep. Adding Set: %d\n",t);
 #endif
@@ -74,9 +86,11 @@ DFA buildDFA(re_ast* ast, char* re) {
     int found;
     char* alphabet = malloc(sizeof(char)*strlen(re)); 
     char* posns = malloc(sizeof(char)*strlen(re));
+    char** ccl = malloc(sizeof(char*)*strlen(re));
+    enum RESymbol* posn_type = malloc(sizeof(int)*strlen(re));
     DFA dfa;
     StateQueue fq;
-    initAlphabetAndPositions(alphabet, posns, re);
+    initAlphabetAndPositions(ast, alphabet, posns, ccl, posn_type, re);
     initDFA(&dfa,numleaves+1);
     addState(&dfa, createState(nextStateNum(&dfa), copySet(firstpos[ast->number])));
     initQueue(&fq);
@@ -90,7 +104,7 @@ DFA buildDFA(re_ast* ast, char* re) {
 #ifdef DEBUG
             printf("Input Symbol: %c\n", *input_symbol);
 #endif
-            Set* next_states = calculateNextStatesPositions(curr_state, *input_symbol, posns);
+            Set* next_states = calculateNextStatesPositions(curr_state, *input_symbol, posns, ccl, posn_type);
             if (!isSetEmpty(next_states)) {
                 if ((found = findStateByPositions(&dfa, next_states)) > -1) {
                     dfa.dtrans[curr_state->label] = addTransition(dfa.dtrans[curr_state->label], curr_state->label, dfa.states[found]->label, *input_symbol);
@@ -152,13 +166,31 @@ int symbolIsInAlphabet(char* str, int n, char c) {
     return -1;
 }
 
-void initAlphabetAndPositions(char* alphabet, char* posns, char* re) {
+void fillPositions(re_ast* ast, char* posns, char** ccl, enum RESymbol* posn_type) {
+    if (ast == NULL)
+        return;
+    fillPositions(ast->left, posns, ccl, posn_type);
+    fillPositions(ast->right, posns, ccl, posn_type);
+    if (isLeaf(ast)) {
+        if (ast->token.symbol == RE_CCL) {
+            ccl[ast->number-1] = ast->token.ccl;
+            posns[ast->number-1] = ']';
+        } else {
+            posns[ast->number-1] = ast->token.ch;
+        }
+        posn_type[ast->number-1] = ast->token.symbol;
+    }
+}
+
+void initAlphabetAndPositions(re_ast* ast, char* alphabet, char* posns, char** ccl, enum RESymbol* posn_type, char* re) {
     int k = 0, p = 0;
+#ifdef DEBUG
+    printf("Getting alphabet from %s\n", re);
+#endif
+    fillPositions(ast, posns, ccl, posn_type);
     for (int i = 0; re[i]; i++) {
         if (re[i] != '#' && is_char(re[i]) && symbolIsInAlphabet(alphabet, k, re[i]) == -1)
             alphabet[k++] = re[i];
-        if (is_char(re[i]))
-            posns[p++] = re[i];
     }
 #ifdef DEBUG
     printf("Alphabet: %s, Positions: %s\n", alphabet, posns);

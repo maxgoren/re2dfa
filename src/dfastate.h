@@ -7,16 +7,14 @@
 
 typedef struct {
     int label;
-    Set* positions;
     bool is_accepting;
+    Set* positions;
 } DFAState;
 
 typedef struct qnode_ {
     DFAState* state;
     struct qnode_* next;
 } qnode;
-
-
 
 typedef struct {
     qnode* head;

@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 enum RESymbol {
-    RE_CHAR, RE_PERIOD, RE_LPAREN, RE_RPAREN,
-    RE_STAR, RE_PLUS, RE_QUESTION, 
+    RE_CHAR, RE_PERIOD, RE_LPAREN, RE_RPAREN, 
+    RE_CCL, RE_STAR, RE_PLUS, RE_QUESTION, 
     RE_CONCAT, RE_OR, RE_EPSILON, RE_NONE
 };
 
@@ -16,6 +16,7 @@ extern char* RESymbolStr[];
 typedef struct Token_ {
     enum RESymbol symbol;
     char ch;
+    char *ccl;
     struct Token_* next;
 } Token;
 

@@ -1,7 +1,7 @@
 #include "tokens.h"
 
 char* RESymbolStr[] = {
-    "CHAR", "PERIOD", "LPAREN", "RPAREN",
+    "CHAR", "PERIOD", "LPAREN", "RPAREN", "CHAR CLASS",
     "STAR", "PLUS", "QUESTION", 
     "CONCAT", "OR", "EPSILON", "NONE"
 };
@@ -9,6 +9,12 @@ char* RESymbolStr[] = {
 Token* makeToken(enum RESymbol sym, char ch) {
     Token* nt = malloc(sizeof(Token));
     nt->ch = ch;
+    if (sym == RE_CCL) {
+        nt->ccl = malloc(sizeof(char)*128);
+        nt->ccl[0] = '\0';
+    } else {
+        nt->ccl = NULL;
+    }
     nt->symbol = sym;
     nt->next = NULL;
     return nt;
@@ -65,6 +71,18 @@ Token* tokenize(char* str) {
                     t->next = makeToken(RE_RPAREN, str[i]);
                     t = t->next; 
                 } break;
+                case '[': {
+                    t->next = makeToken(RE_CCL, '[');
+                    t = t->next;
+                    char* ccl = t->ccl;
+                    i++;
+                    while (str[i] != ']') {
+                        if (str[i] != '@')
+                            *ccl++ = str[i++];
+                        else i++;
+                    }
+                    break;
+                }
                 default:
                     break;
             }
@@ -80,10 +98,16 @@ int tokensLength(Token* list) {
 }
 
 char* toString(Token* tokens) {
-    char* asStr = malloc(sizeof(char)*tokensLength(tokens)+1);
+    char* asStr = malloc(sizeof(char)*256);
     int n = 0;
     for (Token* it = tokens; it != NULL; it = it->next) {
-        asStr[n++] = it->ch;
+        if (it->symbol == RE_CCL) {
+            for (char *sp = it->ccl; *sp; sp++) {
+                asStr[n++] = *sp;
+            }
+        } else {
+            asStr[n++] = it->ch;
+        }
     }
     asStr[n++] = '\0';
     return asStr;

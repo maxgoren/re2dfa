@@ -12,7 +12,11 @@ re_ast* makeNode(int type, Token tk) {
 void printAST(re_ast* node, int d) {
     if (node != NULL) {
         for (int i = 0; i < d; i++) printf("  ");
-        printf("<%s, %c> {%d}\n", RESymbolStr[node->token.symbol], node->token.ch, node->number);
+        if (node->token.symbol == RE_CCL) {
+            printf("<%s, %s> {%d}\n", RESymbolStr[node->token.symbol], node->token.ccl, node->number);
+        } else {
+            printf("<%s, %c> {%d}\n", RESymbolStr[node->token.symbol], node->token.ch, node->number);
+        }
         printAST(node->left, d+1);
         printAST(node->right, d+1);
     }
