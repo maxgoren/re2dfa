@@ -87,10 +87,11 @@ DFA buildDFA(re_ast* ast, char* re) {
     char* alphabet = malloc(sizeof(char)*strlen(re)); 
     char* posns = malloc(sizeof(char)*strlen(re));
     char** ccl = malloc(sizeof(char*)*strlen(re));
+    re_ast** ast_leaf_table = malloc(sizeof(re_ast*)*strlen(re));
     enum RESymbol* posn_type = malloc(sizeof(int)*strlen(re));
     DFA dfa;
     StateQueue fq;
-    initAlphabetAndPositions(ast, alphabet, posns, ccl, posn_type, re);
+    initAlphabetAndPositions(ast, alphabet, posns, ccl, posn_type, re, ast_leaf_table);
     initDFA(&dfa,numleaves+1);
     addState(&dfa, createState(nextStateNum(&dfa), copySet(firstpos[ast->number])));
     initQueue(&fq);
@@ -132,13 +133,19 @@ DFA buildDFA(re_ast* ast, char* re) {
         printf("\n----------------------------------------\n");
 #endif
     }
-    int acpos = strlen(posns);
     for (int i = 1; i <= dfa.numstates; i++) {
-        if (setContains(dfa.states[i]->positions, acpos) > -1) {
-            dfa.states[i]->is_accepting = true; 
+        DFAState* next_state = dfa.states[i];
+        for (int j = 0; j < next_state->positions->n; j++) {
+            int pos = next_state->positions->members[j];
+            if (posns[pos-1] == '#')  {      
+                next_state->is_accepting = true; 
+                int leaf_id = ast_leaf_table[pos]->tk_token_id;
+                if (next_state->token_id == -1 || leaf_id < next_state->token_id)
+                    next_state->token_id = leaf_id;
 #ifdef DEBUG
-            printf("Marked %d as accepting state.\n", i);
+                printf("Marked %d as accepting state.\n", i);
 #endif
+            }
         }
     }
     return dfa;
@@ -166,11 +173,11 @@ int symbolIsInAlphabet(char* str, int n, char c) {
     return -1;
 }
 
-void fillPositions(re_ast* ast, char* posns, char** ccl, enum RESymbol* posn_type) {
+void fillPositions(re_ast* ast, char* posns, char** ccl, enum RESymbol* posn_type, re_ast** ast_leaf_table) {
     if (ast == NULL)
         return;
-    fillPositions(ast->left, posns, ccl, posn_type);
-    fillPositions(ast->right, posns, ccl, posn_type);
+    fillPositions(ast->left, posns, ccl, posn_type, ast_leaf_table);
+    fillPositions(ast->right, posns, ccl, posn_type, ast_leaf_table);
     if (isLeaf(ast)) {
         if (ast->token.symbol == RE_CCL) {
             ccl[ast->number-1] = ast->token.ccl;
@@ -179,17 +186,19 @@ void fillPositions(re_ast* ast, char* posns, char** ccl, enum RESymbol* posn_typ
             posns[ast->number-1] = ast->token.ch;
         }
         posn_type[ast->number-1] = ast->token.symbol;
+        ast_leaf_table[ast->number] = ast;
     }
 }
 
-void initAlphabetAndPositions(re_ast* ast, char* alphabet, char* posns, char** ccl, enum RESymbol* posn_type, char* re) {
+void initAlphabetAndPositions(re_ast* ast, char* alphabet, char* posns, char** ccl, enum RESymbol* posn_type, char* re, re_ast** ast_leaf_table) {
     int k = 0, p = 0;
 #ifdef DEBUG
     printf("Getting alphabet from %s\n", re);
 #endif
-    fillPositions(ast, posns, ccl, posn_type);
+    posns[0] = '_';
+    fillPositions(ast, posns, ccl, posn_type, ast_leaf_table);
     for (int i = 0; re[i]; i++) {
-        if (re[i] != '#' && is_char(re[i]) && symbolIsInAlphabet(alphabet, k, re[i]) == -1)
+        if (re[i] != '#' && (is_char(re[i]) || is_digit(re[i]) || is_special(re[i])) && symbolIsInAlphabet(alphabet, k, re[i]) == -1)
             alphabet[k++] = re[i];
     }
 #ifdef DEBUG

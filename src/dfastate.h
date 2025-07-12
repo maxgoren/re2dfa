@@ -7,6 +7,7 @@
 
 typedef struct {
     int label;
+    int token_id;
     bool is_accepting;
     Set* positions;
 } DFAState;

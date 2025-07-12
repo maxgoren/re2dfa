@@ -8,6 +8,7 @@
 typedef struct re_ast_ {
     int type;
     int number;
+    int tk_token_id;
     Token token;
     struct re_ast_* left;
     struct re_ast_* right;

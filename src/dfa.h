@@ -5,7 +5,7 @@
 #include "intset.h"
 #include "dfastate.h"
 #include "followpos.h"
-
+#include "../re2ast/src/tokens.h"
 typedef struct Transition_ {
     int from;
     char ch;
@@ -26,7 +26,7 @@ void addState(DFA* dfa, DFAState* state);
 Transition* addTransition(Transition* trans, int from, int to, char ch);
 Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol, char* re, char** ccl, enum RESymbol* posn_type);
 int findStateByPositions(DFA* dfa, Set* next_states);
-void initAlphabetAndPositions(re_ast* ast, char* alphabet, char* posns, char** ccl, enum RESymbol* posn_type, char* re);
+void initAlphabetAndPositions(re_ast* ast, char* alphabet, char* posns, char** ccl, enum RESymbol* posn_type, char* re, re_ast** ast_leaf_table);
 int symbolIsInAlphabet(char* str, int n, char c);
 int nextStateNum(DFA* dfa);
 DFA buildDFA(re_ast* ast, char* re);

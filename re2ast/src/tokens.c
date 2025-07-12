@@ -21,20 +21,37 @@ Token* makeToken(enum RESymbol sym, char ch) {
 }
 
 bool is_digit(char c) {
-    return c >= '0' && c <= '9';
+    return (int)c > 47 && (int)c < 58;
 }
 
 bool is_char(char c) {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '#' || c == '.');
+    return ((int)c > 64 && (int)c < 91) || 
+           ((int)c > 96 && (int)c < 123) || 
+           (c == '#' || c == '.');
 }
+
+bool is_special(char c) {
+    return (((int)c > 32 && c < 48) || 
+            ((int)c > 57 && (int)c < 65)) || 
+            (((int)c > 90 && (int)c < 97) || 
+            ((int)c > 122 && (int)c < 127));
+}
+
 
 Token* tokenize(char* str) {
     Token header; Token* t = &header;
     int sp = 0;
     for (int i = 0; str[i] != '\0'; i++) { 
-        if (str[i] == '\\' && str[i+1] == '.') {
-            t->next = makeToken(RE_CHAR, '.');
-            t = t->next;
+        if (str[i] == '\\') {
+            char c = str[++i];
+            if (c == 'd') {
+                t->next = makeToken(RE_CCL, '[');
+                t = t->next;
+                t->ccl = strdup("0123456789");
+            } else  {
+                t->next = makeToken(RE_CHAR, c);
+                t = t->next;
+            }
         } else if (str[i] == '.') {
             t->next = makeToken(RE_PERIOD, str[i]);
             t = t->next;
@@ -76,14 +93,28 @@ Token* tokenize(char* str) {
                     t = t->next;
                     char* ccl = t->ccl;
                     i++;
+                    if (str[i] == '-') {
+                        *ccl++ = str[i++];
+                    }
                     while (str[i] != ']') {
-                        if (str[i] != '@')
-                            *ccl++ = str[i++];
-                        else i++;
+                        char start = str[i++];
+                        if (str[i-1] != '[' && str[i] == '-' && str[i+1] != ']') {
+                            i++;
+                            char end = str[i++];
+                            for (char c = start; c <= end; c++) {
+                                *ccl++ = c;
+                            }
+                        } else {
+                            *ccl++ = start;
+                        }
                     }
                     break;
                 }
                 default:
+                    if (is_special(str[i])) {
+                        t->next = makeToken(RE_CHAR, str[i]);
+                        t = t->next;
+                    }
                     break;
             }
         }

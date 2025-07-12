@@ -44,6 +44,7 @@ void cleanup(DFA* dfa, re_ast* ast) {
 }
 
 char* augmentRE(char* orig) {
+    if (orig == NULL) return orig;
     char* fixed = malloc(sizeof(char)*strlen(orig)+3);
     sprintf(fixed, "(%s)#", orig);
     return fixed;

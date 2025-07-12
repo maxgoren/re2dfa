@@ -4,20 +4,54 @@ char* addConCat(char* str) {
     int n = 2*strlen(str);
     char *ns = malloc(sizeof(char)*n);
     int i = 0, j = 0;
+    bool inccl = false;
+    bool curr_escaped = false;
+    bool prev_escaped = false;
     for (i = 0; str[i] != '\0'; i++) {
-        ns[j++] = str[i];
-        if (str[i] == '(' || str[i] == '|')
-            continue;
-        if (i+1 < strlen(str)) {
-            char p = str[i+1];
-            if (p == '|' || p == '*' || p == '+' || p == '?' || p == ')')
-                continue;
-            if (p == '.' || p == '\\' && str[i+2] == '.')
-                continue;
-            ns[j++] = '@';
+        char current = str[i];
+        if (current == '\\') {
+            curr_escaped = true;
+        } else if (current == '[') {
+            inccl = true;
+        } else if (current == ']') {
+            inccl = false;
         }
+        if (!curr_escaped && !prev_escaped) {
+            ns[j++] = current;
+        } else if (prev_escaped && !curr_escaped) {
+            ns[j++] = '\\';
+            ns[j++] = current;
+        } else {
+            prev_escaped = curr_escaped;
+            curr_escaped = false;
+            continue;
+        }
+        if (!curr_escaped && (str[i] == '(' || str[i] == '|')) {
+            prev_escaped = curr_escaped;
+            curr_escaped = false;
+            continue;
+        }
+        if (i+1 < strlen(str) && str[i+1] != '#') {
+            char lookahead = str[i+1];
+            if (lookahead == '(' || lookahead == '|' || lookahead == '*' || lookahead == '+' || lookahead == '?' || lookahead == ')')
+                continue;
+            if (lookahead == '.' || lookahead == '\\' && str[i+2] == '.')
+                continue;
+            if (prev_escaped && curr_escaped)
+                ns[j++] = '@';
+            else if (!inccl)
+                ns[j++] = '@';
+        } else {
+            if (i+1 < strlen(str) && str[i+1] == '#')
+                ns[j++] = '@';
+        }
+        prev_escaped = curr_escaped;
+        curr_escaped = false;
     }
     ns[j++] = '\0';
+#ifdef DEBUG
+    printf("In: %s\nOut: %s\n", str, ns);
+#endif
     return ns;
 }
 
