@@ -129,11 +129,12 @@ int tokensLength(Token* list) {
 }
 
 char* toString(Token* tokens) {
-    char* asStr = malloc(sizeof(char)*256);
+    int len = 2*tokensLength(tokens);
+    char* asStr = malloc(sizeof(char)*len);
     int n = 0;
-    for (Token* it = tokens; it != NULL; it = it->next) {
+    for (Token* it = tokens; it != NULL && n < len; it = it->next) {
         if (it->symbol == RE_CCL) {
-            for (char *sp = it->ccl; *sp; sp++) {
+            for (char *sp = it->ccl; *sp && n < len; sp++) {
                 asStr[n++] = *sp;
             }
         } else {

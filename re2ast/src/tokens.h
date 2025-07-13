@@ -23,7 +23,10 @@ typedef struct Token_ {
 Token* makeToken(enum RESymbol sym, char ch);
 
 bool is_digit(char c);
+
 bool is_char(char c);
+
+bool is_special(char c);
 
 Token* tokenize(char* str);
 

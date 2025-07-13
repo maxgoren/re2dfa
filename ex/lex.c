@@ -6,7 +6,11 @@
 
 enum TKSymbol {
     TK_NUM, TK_REAL, TK_ID, TK_LP, TK_RP, TK_LC, TK_RC,
-    TK_PRINT, TK_IF, TK_ELSE, TK_WHILE,
+    TK_PRINT, TK_IF, TK_ELSE, TK_WHILE, TK_IN, TK_FUNC,
+    TK_MAP, TK_FILTER, TK_REDUCE, TK_NIL, TK_PUSH, TK_SIZE, TK_SORT,
+    TK_FIRST, TK_REST, TK_BLESS, TK_BREAK, TK_FOPEN, TK_RETURN,
+    TK_EMPTY, TK_REVERSE, TK_STRUCT, TK_TYPEOF, TK_FOREACH,
+    TK_LET, TK_TRUE, TK_FALSE, TK_COMA, TK_SEMI,
     TK_PERIOD,
     TK_EOF
 };
@@ -18,20 +22,46 @@ typedef struct {
 } TokenRule;
 
 
-int nr = 9;
+int nr = 36;
 
 TokenRule rules[] = {
     {"[0-9]+", TK_NUM},
-    //{"\\.", TK_PERIOD},
-    //{"[0-9]+\\.[0-9]+", TK_REAL},
     {"\\(", TK_LP},
     {"\\)", TK_RP},
     {"{", TK_LC},
     {"}", TK_RC},
-    {"print", TK_PRINT},
     {"if", TK_IF},
+    {"in", TK_IN},
+    {"let", TK_LET},
+    {"var", TK_LET},
+    {"def", TK_FUNC},
+    {"map", TK_MAP},
+    {"nil", TK_NIL},
     {"else",TK_ELSE},
-    {"[A-Za-z]+[A-Za-z0-9]*", TK_ID}
+    {"push", TK_PUSH},
+    {"size", TK_SIZE},
+    {"sort", TK_SORT},
+    {"rest", TK_REST},
+    {"true", TK_TRUE},
+    {"false", TK_FALSE},
+    {"break", TK_BREAK},
+    {"fopen", TK_FOPEN},
+    {"first", TK_FIRST},
+    {"while", TK_WHILE},
+    {"print", TK_PRINT},
+    {"empty", TK_EMPTY},
+    {"bless", TK_BLESS},
+    {"filter", TK_FILTER},
+    {"reduce", TK_REDUCE},
+    {"return", TK_RETURN},
+    {"struct", TK_STRUCT},
+    {"typeOf", TK_TYPEOF},
+    {"foreach", TK_FOREACH},
+    {"reverse", TK_REVERSE},
+    {"[A-Za-z]+[A-Za-z0-9]*", TK_ID},
+    //{"\\.", TK_PERIOD},
+    {",", TK_COMA},
+    {";", TK_SEMI}
 };
 
 void tag_final_pos_with_token_id(re_ast* ast, int rulenum) {
@@ -73,9 +103,10 @@ CombinedRE* combine(int numrules) {
      re[p++] = ')';
     re[p++] = '\0';
     CombinedRE* cre = malloc(sizeof(CombinedRE));
-    cre->pattern = re;
-    cre->patlen = p;
+    cre->pattern = augmentRE(re);
+    cre->patlen = strlen(cre->pattern);
     cre->ast = root;
+    printf("Combined into: %s\n", cre->pattern);
     return cre;
 }
 

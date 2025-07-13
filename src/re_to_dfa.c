@@ -45,7 +45,7 @@ void cleanup(DFA* dfa, re_ast* ast) {
 
 char* augmentRE(char* orig) {
     if (orig == NULL) return orig;
-    char* fixed = malloc(sizeof(char)*strlen(orig)+3);
+    char* fixed = malloc(sizeof(char)*strlen(orig)+4);
     sprintf(fixed, "(%s)#", orig);
     return fixed;
 }
@@ -66,7 +66,7 @@ bool matchDFA(char* re, char *text) {
     printf("Followpos Table: \n");   
     for (int i = 1; i < numleaves+1; i++) {
         printf("%d: ", i);
-        printSet(followpos[i]);
+        printSet(ast_node_table[i]->followpos);
     }
     printf("DFA: \n");
     printDFA(dfa);

@@ -33,10 +33,7 @@ From the Followpos table, we can build a DFA to recognize the provided regular e
 
 extern int numleaves;
 extern int nonleaves;
-
-extern Set** firstpos;
-extern Set** lastpos;
-extern Set** followpos;
+extern re_ast** ast_node_table;
 
 int isLeaf(re_ast* node);
 

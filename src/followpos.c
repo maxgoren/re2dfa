@@ -1,5 +1,7 @@
 #include "followpos.h"
 
+re_ast** ast_node_table;
+
 int isLeaf(re_ast* node) {
     return (node->left == NULL && node->right == NULL);
 }
@@ -9,11 +11,15 @@ void number_nodes(re_ast* node, int pass) {
         number_nodes(node->left, pass);
         number_nodes(node->right, pass);
         if (isLeaf(node)) {
-            if (pass == 1)
+            if (pass == 1) {
                 node->number = ++numleaves;
+                ast_node_table[node->number] = node;
+            }
         } else {
-            if (pass == 2)
+            if (pass == 2) {
                 node->number = ++nonleaves;
+                ast_node_table[node->number] = node;
+            }
         }
     }
 }
@@ -36,39 +42,33 @@ bool nullable(re_ast* node) {
 }
 int numleaves;
 int nonleaves;
-Set** firstpos;
-Set** lastpos;
-Set** followpos;
 
-void initAttributeSets() {
-    firstpos = malloc(sizeof(Set*)*(nonleaves+1));
-    lastpos = malloc(sizeof(Set*)*(nonleaves+1));
-    followpos = malloc(sizeof(Set*)*(nonleaves+1));
-    for (int i = 0; i < nonleaves+1; i++) {
-        firstpos[i] = malloc(sizeof(Set));
-        initSet(firstpos[i], nonleaves+1);
-        lastpos[i] = malloc(sizeof(Set));
-        initSet(lastpos[i], nonleaves+1);
-        followpos[i] = malloc(sizeof(Set));
-        initSet(followpos[i], nonleaves+1);
+
+void initAttributeSets(int size) {
+    for (int i = 0; i < size+1; i++) {
+        if (ast_node_table[i] != NULL) {
+            ast_node_table[i]->firstpos = createSet(size+1);
+            ast_node_table[i]->lastpos = createSet(size+1);
+            ast_node_table[i]->followpos = createSet(size+1);
+        }
     }
 }
 
 void mergeFirstPos(re_ast* node) {
     if (node->left) {
-        firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->left->number]);
+        node->firstpos = setUnion(node->firstpos, node->left->firstpos);
     }
     if (node->right) {
-        firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->right->number]);
+        node->firstpos = setUnion(node->firstpos, node->right->firstpos);
     }
 }
 
 void mergeLastPos(re_ast* node) {
     if (node->left) {
-        lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->left->number]);
+        node->lastpos = setUnion(node->lastpos, node->left->lastpos);
     }
     if (node->right) {
-        lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->right->number]);
+        node->lastpos = setUnion(node->lastpos, node->right->lastpos);
     }
 }
 
@@ -86,8 +86,8 @@ void calcFirstandLastPos(re_ast* node) {
         calcFirstandLastPos(node->left);
         calcFirstandLastPos(node->right);
         if (isLeaf(node)) {
-            setAdd(firstpos[node->number], node->number);
-            setAdd(lastpos[node->number], node->number);
+            setAdd(node->firstpos, node->number);
+            setAdd(node->lastpos, node->number);
         } else if (node->token.symbol == RE_OR) {
             mergeFirstPos(node);
             mergeLastPos(node);
@@ -95,16 +95,16 @@ void calcFirstandLastPos(re_ast* node) {
             if (nullable(node->left)) {
                 mergeFirstPos(node);
             } else if (node->left) {
-                firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->left->number]);
+                node->firstpos = setUnion(node->firstpos, node->left->firstpos);
             }
             if (nullable(node->right)) {
                 mergeLastPos(node);
             } else if (node->right) {
-                lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->right->number]);
+                node->lastpos = setUnion(node->lastpos, node->right->lastpos);
             }
         } else if (node->token.symbol == RE_STAR && node->left) {
-            firstpos[node->number] = setUnion(firstpos[node->number], firstpos[node->left->number]);
-            lastpos[node->number] = setUnion(lastpos[node->number], lastpos[node->left->number]);
+            node->firstpos = setUnion(node->firstpos, node->left->firstpos);
+            node->lastpos = setUnion(node->lastpos, node->left->lastpos);
         }
     }
 }
@@ -129,25 +129,26 @@ void calcFollowPos(re_ast* node) {
     if (node->token.symbol == RE_CONCAT) {
         if (node->left == NULL || node->right == NULL)
             return;
-        for (int i = 0; i < lastpos[node->left->number]->n; i++) {
-            int t = lastpos[node->left->number]->members[i];
-            followpos[t] = setUnion(followpos[t], firstpos[node->right->number]);
+        for (int i = 0; i < node->left->lastpos->n; i++) {
+            int t = node->left->lastpos->members[i];
+            ast_node_table[t]->followpos = setUnion(ast_node_table[t]->followpos, node->right->firstpos);
         }
     }
     if (node->token.symbol == RE_STAR) {
-        for (int i = 0; i < lastpos[node->number]->n; i++) {
-            int t = lastpos[node->number]->members[i];
-            followpos[t] = setUnion(followpos[t], firstpos[node->number]);
+        for (int i = 0; i < node->lastpos->n; i++) {
+            int t = node->lastpos->members[i];
+            ast_node_table[t]->followpos = setUnion(ast_node_table[t]->followpos, node->firstpos);
         }
     }
 }
 
 void computeFollowPos(re_ast* node) {
+    ast_node_table = malloc(sizeof(re_ast*)*(748));
     numleaves = 0;
     number_nodes(node, 1);
     nonleaves = numleaves;
     number_nodes(node, 2);
-    initAttributeSets();
+    initAttributeSets(nonleaves+1);
     calcFirstandLastPos(node);
     calcFollowPos(node);
 }

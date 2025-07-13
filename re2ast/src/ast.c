@@ -4,6 +4,10 @@ re_ast* makeNode(int type, Token tk) {
     re_ast* node = malloc(sizeof(re_ast));
     node->type = type;
     node->token = tk;
+    node->tk_token_id = -1;
+    node->firstpos = NULL;
+    node->lastpos = NULL;
+    node->followpos = NULL;
     node->left = NULL;
     node->right = NULL;
     return node;

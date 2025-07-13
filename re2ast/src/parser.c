@@ -90,16 +90,16 @@ bool isOp(Token c) {
 
 Token* in2post(Token* input) {
     int len = tokensLength(input);
-    Token* opstack[len];
-    int sp = 0;
     Token dummy;
+    Token* opstack[2048];
+    int sp = 0;
     Token* fixed = &dummy;
     int j = 0;
     for (Token* it = input; it != NULL; it = it->next) {
         if (it->symbol == RE_LPAREN)
             opstack[sp++] = it;
         else if (isOp(*it)) {
-            if (precedence(it->ch) < precedence(opstack[sp-1]->ch) || (precedence(it->ch) == precedence(opstack[sp-1]->ch) && leftAssoc(it->ch))) {
+            if (sp > 0 && (precedence(it->ch) < precedence(opstack[sp-1]->ch) || (precedence(it->ch) == precedence(opstack[sp-1]->ch) && leftAssoc(it->ch)))) {
                 fixed->next = opstack[--sp];
                 fixed = fixed->next;
                 opstack[sp++] = it;
