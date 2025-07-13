@@ -11,9 +11,9 @@ re_2_dfa:
 	gcc *.o -o matchdfa
 
 debug:
-	gcc -g -c ./re2ast/src/ast.c
-	gcc -g -c ./re2ast/src/parser.c
-	gcc -g -c ./re2ast/src/tokens.c
+	gcc -g -c -DDEBUG ./re2ast/src/ast.c
+	gcc -g -c -DDEBUG ./re2ast/src/parser.c
+	gcc -g -c -DDEBUG ./re2ast/src/tokens.c
 	gcc -g -c -DDEBUG ./src/intset.c
 	gcc -g -c -DDEBUG ./src/followpos.c
 	gcc -g -c -DDEBUG ./src/dfastate.c

@@ -16,10 +16,12 @@ char* addConCat(char* str) {
         } else if (current == ']') {
             inccl = false;
         }
+        
         if (!curr_escaped && !prev_escaped) {
             ns[j++] = current;
         } else if (prev_escaped && !curr_escaped) {
-            ns[j++] = '\\';
+            if (str[i-1] == '\\')
+                ns[j++] = '\\';
             ns[j++] = current;
         } else {
             prev_escaped = curr_escaped;
@@ -35,8 +37,8 @@ char* addConCat(char* str) {
             char lookahead = str[i+1];
             if (lookahead == '(' || lookahead == '|' || lookahead == '*' || lookahead == '+' || lookahead == '?' || lookahead == ')')
                 continue;
-            if (lookahead == '.' || lookahead == '\\' && str[i+2] == '.')
-                continue;
+            //if (lookahead == '.' || (lookahead == '\\' && str[i+2] == '.'))
+            //    continue;
             if (prev_escaped && curr_escaped)
                 ns[j++] = '@';
             else if (!inccl)

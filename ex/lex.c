@@ -7,7 +7,7 @@
 enum TKSymbol {
     TK_NUM, TK_REAL, TK_ID, TK_LP, TK_RP, TK_LC, TK_RC,
     TK_PRINT, TK_IF, TK_ELSE, TK_WHILE,
-    TK_LCURLY, TK_RCURLY,
+    TK_PERIOD,
     TK_EOF
 };
 
@@ -22,6 +22,7 @@ int nr = 9;
 
 TokenRule rules[] = {
     {"[0-9]+", TK_NUM},
+    //{"\\.", TK_PERIOD},
     //{"[0-9]+\\.[0-9]+", TK_REAL},
     {"\\(", TK_LP},
     {"\\)", TK_RP},
