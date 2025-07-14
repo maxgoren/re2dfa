@@ -49,7 +49,7 @@ Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol) {
             printf("%c == %c?",  ast_node_table[t]->token.ch, input_symbol);
         }
 #endif
-        if (ast_node_table[t]->token.symbol == RE_CCL && findInCharClass(ast_node_table[t]->token.ccl, input_symbol) || (ast_node_table[t]->token.ch == input_symbol || ast_node_table[t]->token.symbol == RE_PERIOD)) {
+        if ((ast_node_table[t]->token.symbol == RE_CCL && findInCharClass(ast_node_table[t]->token.ccl, input_symbol)) || (ast_node_table[t]->token.symbol != RE_CCL && ast_node_table[t]->token.ch == input_symbol || ast_node_table[t]->token.symbol == RE_PERIOD)) {
 #ifdef DEBUG
             printf(" Yep. Adding Set: %d\n",t);
 #endif

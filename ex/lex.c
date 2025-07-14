@@ -234,7 +234,11 @@ TKTokenListNode* lex_input(char* input) {
 }
 
 int main(int argc, char* argv[]) {
-    char* input = "print 1234 if (goblin42) { funccall() { return 13.66; } else { print arr[12]; } }";
-    lex_input(input);
+    if (argc < 2) { 
+        char* input = "print 1234 if (goblin42) { funccall() { return 13.66; } else { print arr[12]; } }";
+        lex_input(input);
+    } else {
+        lex_input(argv[1]);
+    }
     return 0;
 }
