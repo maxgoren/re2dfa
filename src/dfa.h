@@ -6,6 +6,7 @@
 #include "dfastate.h"
 #include "followpos.h"
 #include "../re2ast/src/tokens.h"
+
 typedef struct Transition_ {
     int from;
     char ch;

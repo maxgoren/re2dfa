@@ -8,7 +8,7 @@ bool simulateDFA(DFA dfa, char* text) {
 #endif
         DFAState* next = NULL;
         for (Transition* it = dfa.dtrans[state->label]; it != NULL; it = it->next) {
-            if (*sp == it->ch || it->ch == '.') {
+            if (*sp == it->ch || ast_node_table[state->label]->token.symbol == RE_PERIOD) {
                 next = dfa.states[it->to];
                 break;
             }
@@ -52,7 +52,10 @@ char* augmentRE(char* orig) {
 
 DFA re2dfa(char* re, re_ast* ast) {
     computeFollowPos(ast);
-    DFA dfa = buildDFA(ast, toString(in2post(tokenize(re))));
+    printf("Re: %s\n", re);
+    char* yeet = toString(in2post(tokenize(re)));
+    printf("Redidered: %s\n", yeet);
+    DFA dfa = buildDFA(ast, yeet);
     return dfa;
 }
 

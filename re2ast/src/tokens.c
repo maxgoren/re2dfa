@@ -129,7 +129,7 @@ int tokensLength(Token* list) {
 }
 
 char* toString(Token* tokens) {
-    int len = 2*tokensLength(tokens);
+    int len = 1024;
     char* asStr = malloc(sizeof(char)*len);
     int n = 0;
     for (Token* it = tokens; it != NULL && n < len; it = it->next) {

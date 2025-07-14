@@ -1,5 +1,35 @@
 #include "parser.h"
 
+
+
+
+int appendCurrent(char* ns, char* str, int pos, int sp, char ch, bool prev_escaped, bool curr_escaped) {
+    printf("Position: %d, Char: %c\n", pos, ch);
+    if (!curr_escaped && !prev_escaped) {
+        printf("1\n");
+        ns[pos] = ch;
+        for (int k = 0; k <= pos; k++) putchar(ns[k]);
+        printf("\n");
+        return 1;
+    } else if (prev_escaped && !curr_escaped) {
+        printf("2\n");
+        if (str[sp-1] == '\\') {
+            ns[pos] = '\\';
+        }
+        ns[pos+1] = ch;
+        return 2;
+    } else if (prev_escaped && curr_escaped) {
+        printf("3\n");
+        ns[pos] = ch;
+        return 1;
+    } else {
+        printf("Not prev escaped, but curr escaped\n");
+        printf("4\n");
+        return 0;
+    }
+    return 0;
+}
+
 char* addConCat(char* str) {
     int n = 2*strlen(str);
     char *ns = malloc(sizeof(char)*n);
@@ -17,13 +47,9 @@ char* addConCat(char* str) {
             inccl = false;
         }
         
-        if (!curr_escaped && !prev_escaped) {
-            ns[j++] = current;
-        } else if (prev_escaped && !curr_escaped) {
-            if (str[i-1] == '\\')
-                ns[j++] = '\\';
-            ns[j++] = current;
-        } else {
+        int added = appendCurrent(ns, str, j, i, current, prev_escaped, curr_escaped);
+        j += added;
+        if ((!prev_escaped && curr_escaped)) {
             prev_escaped = curr_escaped;
             curr_escaped = false;
             continue;
@@ -35,17 +61,22 @@ char* addConCat(char* str) {
         }
         if (i+1 < strlen(str) && str[i+1] != '#') {
             char lookahead = str[i+1];
-            if (lookahead == '(' || lookahead == '|' || lookahead == '*' || lookahead == '+' || lookahead == '?' || lookahead == ')')
+            printf("curr_escaped: %c, prev_escaped: %c, Curr: %c, lookahead: %c\n",  curr_escaped ? 'T':'F', prev_escaped ? 'T':'F', current, lookahead);
+            if (!prev_escaped && (lookahead == '|' || lookahead == '*' || lookahead == '+' || lookahead == '?' || lookahead == ')')) {
+                printf("Unescaped metachar, skipping concat.\n");
                 continue;
-            //if (lookahead == '.' || (lookahead == '\\' && str[i+2] == '.'))
-            //    continue;
-            if (prev_escaped && curr_escaped)
+            }
+            if (!inccl && !curr_escaped && !(lookahead == '|' || lookahead == '*' || lookahead == '+' || lookahead == '?' || lookahead == ')') && ns[j-1] != '@')
                 ns[j++] = '@';
-            else if (!inccl)
-                ns[j++] = '@';
-        } else {
-            if (i+1 < strlen(str) && str[i+1] == '#')
-                ns[j++] = '@';
+            else if (!inccl && !prev_escaped && !curr_escaped) {
+                 ns[j++] = '@';
+            }
+            //it was about this time I started _seriously_ reconsidering my use of the shunting yard algorithm
+            //allllll of this uglyness would go away with a simple recursive descent parser. 
+            //*sigh* sunk cost falacy strikes again.
+        } else if (i+1 < strlen(str) && str[i+1] == '#') {
+            printf("Next state is accept, adding concat.\n");
+            ns[j++] = '@';
         }
         prev_escaped = curr_escaped;
         curr_escaped = false;
@@ -56,6 +87,8 @@ char* addConCat(char* str) {
 #endif
     return ns;
 }
+
+
 
 bool leftAssoc(char c) {
     return c == '*' || c == '+' || c == '?' || c == '@' || c == '|';

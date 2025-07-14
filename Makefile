@@ -22,5 +22,17 @@ debug:
 	gcc -g -c -DDEBUG ./src/match.c
 	gcc -g -DDEBUG *.o -o matchdfa
 
+lex_example:
+	gcc -c -DDEBUG ./re2ast/src/ast.c 
+	gcc -c -DDEBUG ./re2ast/src/tokens.c 
+	gcc -c -DDEBUG ./re2ast/src/parser.c 
+	gcc -c -DDEBUG ./src/followpos.c 
+	gcc -c -DDEBUG ./src/dfa.c 
+	gcc -c -DDEBUG ./src/dfastate.c 
+	gcc -c -DDEBUG ./src/intset.c 
+	gcc -c -DDEBUG ./src/re_to_dfa.c 
+	gcc -c -DDEBUG ./ex/lex.c 
+	gcc *.o -o lex
+
 clean:
 	rm *.o

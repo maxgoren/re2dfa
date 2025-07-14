@@ -49,7 +49,7 @@ Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol) {
             printf("%c == %c?",  ast_node_table[t]->token.ch, input_symbol);
         }
 #endif
-        if (ast_node_table[t]->token.symbol == RE_CCL && findInCharClass(ast_node_table[t]->token.ccl, input_symbol) || (ast_node_table[t]->token.ch == input_symbol || ast_node_table[t]->token.ch == '.')) {
+        if (ast_node_table[t]->token.symbol == RE_CCL && findInCharClass(ast_node_table[t]->token.ccl, input_symbol) || (ast_node_table[t]->token.ch == input_symbol || ast_node_table[t]->token.symbol == RE_PERIOD)) {
 #ifdef DEBUG
             printf(" Yep. Adding Set: %d\n",t);
 #endif
@@ -84,19 +84,17 @@ int nextStateNum(DFA* dfa) {
 
 DFA buildDFA(re_ast* ast, char* re) {
     int found;
+    printf("Eh? %s, %d\n", re, strlen(re));
     int max_table_size = (strlen(re)+5);
-    printf("Table needs to be at least: %d\n", max_table_size);
     char* alphabet = malloc(sizeof(char)*max_table_size); 
     if (alphabet == NULL) {
         printf("Malloc failed :(\n");
         exit(EXIT_FAILURE);
     }
-    re_ast** ast_leaf_table = malloc(sizeof(re_ast*)*max_table_size);
     DFA dfa;
     StateQueue fq;
     initAlphabet(ast, alphabet, re);
     initDFA(&dfa,numleaves+1);
-    //addState(&dfa, createState(nextStateNum(&dfa), copySet(firstpos[ast->number])));
     addState(&dfa, createState(nextStateNum(&dfa), copySet(ast->firstpos)));
 
     initQueue(&fq);
@@ -145,12 +143,14 @@ DFA buildDFA(re_ast* ast, char* re) {
             if (ast_node_table[pos]->token.ch == '#')  {      
                 next_state->is_accepting = true; 
                 int leaf_id = ast_node_table[pos]->tk_token_id;
-                if (next_state->token_id == -1 || leaf_id < next_state->token_id)
+                if (next_state->token_id == -1 || leaf_id < next_state->token_id) {
                     next_state->token_id = leaf_id;
-#ifdef DEBUG
-                printf("Marked %d as accepting state.\n", i);
-#endif
+//#ifdef DEBUG
+                    printf("Marked %d as accepting statefor leaf id %d.\n", i, leaf_id);
+//#endif
+                }
             }
+            printf("-----------------------\n");
         }
     }
     return dfa;
