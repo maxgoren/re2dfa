@@ -146,6 +146,8 @@ TKToken* makeTKToken(int rid, int len) {
     return tkt;
 }
 
+//Classic Maximal-much: Prefer longest match, and equal length matches are chosen by priority
+//with priority being order in the rule list.
 TKToken* nextToken(DFA* dfa, const char* input) {
     int curr = 1;
     int last_accept = -1;
@@ -199,10 +201,9 @@ TKTokenListNode* makeTokenListNode(TKToken* token) {
     return tn;
 }
 
-int main() {
+TKTokenListNode* lex_input(char* input) {
     CombinedRE* cre = combine(nr);
     DFA dfa = re2dfa(cre->pattern, cre->ast);
-    char* input = "print 1234 if (goblin42) { funccall() { return 13.66; } else { print arr[12]; } }";
     char* p = input;
     TKTokenListNode dummy;
     TKTokenListNode* thead = &dummy; 
@@ -230,4 +231,10 @@ int main() {
     for (TKTokenListNode* it = dummy.next; it != NULL; it = it->next) {
         printf("<%d, %s, %s> \n", rules[it->token->rule_id].token, rules[it->token->rule_id].pattern, it->token->text);
     }
+}
+
+int main(int argc, char* argv[]) {
+    char* input = "print 1234 if (goblin42) { funccall() { return 13.66; } else { print arr[12]; } }";
+    lex_input(input);
+    return 0;
 }
