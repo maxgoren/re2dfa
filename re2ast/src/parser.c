@@ -4,27 +4,19 @@
 
 
 int appendCurrent(char* ns, char* str, int pos, int sp, char ch, bool prev_escaped, bool curr_escaped) {
-    printf("Position: %d, Char: %c\n", pos, ch);
     if (!curr_escaped && !prev_escaped) {
-        printf("1\n");
         ns[pos] = ch;
-        for (int k = 0; k <= pos; k++) putchar(ns[k]);
-        printf("\n");
         return 1;
     } else if (prev_escaped && !curr_escaped) {
-        printf("2\n");
         if (str[sp-1] == '\\') {
             ns[pos] = '\\';
         }
         ns[pos+1] = ch;
         return 2;
     } else if (prev_escaped && curr_escaped) {
-        printf("3\n");
         ns[pos] = ch;
         return 1;
     } else {
-        printf("Not prev escaped, but curr escaped\n");
-        printf("4\n");
         return 0;
     }
     return 0;
@@ -61,13 +53,13 @@ char* addConCat(char* str) {
         }
         if (i+1 < strlen(str) && str[i+1] != '#') {
             char lookahead = str[i+1];
-            printf("curr_escaped: %c, prev_escaped: %c, Curr: %c, lookahead: %c\n",  curr_escaped ? 'T':'F', prev_escaped ? 'T':'F', current, lookahead);
+            //printf("curr_escaped: %c, prev_escaped: %c, Curr: %c, lookahead: %c\n",  curr_escaped ? 'T':'F', prev_escaped ? 'T':'F', current, lookahead);
             if (!prev_escaped && (lookahead == '|' || lookahead == '*' || lookahead == '+' || lookahead == '?' || lookahead == ')')) {
-                printf("Unescaped metachar, skipping concat.\n");
+               // printf("Unescaped metachar, skipping concat.\n");
                 continue;
             }
             if (!inccl && !curr_escaped && !(lookahead == '|' || lookahead == '*' || lookahead == '+' || lookahead == '?' || lookahead == ')') && ns[j-1] != '@')
-                ns[j++] = '@';
+                 ns[j++] = '@';
             else if (!inccl && !prev_escaped && !curr_escaped) {
                  ns[j++] = '@';
             }
@@ -75,7 +67,7 @@ char* addConCat(char* str) {
             //allllll of this uglyness would go away with a simple recursive descent parser. 
             //*sigh* sunk cost falacy strikes again.
         } else if (i+1 < strlen(str) && str[i+1] == '#') {
-            printf("Next state is accept, adding concat.\n");
+            //printf("Next state is accept, adding concat.\n");
             ns[j++] = '@';
         }
         prev_escaped = curr_escaped;
@@ -108,7 +100,7 @@ int precedence(char c) {
     return 10;
 }
 
-bool isOp(Token c) {
+bool isOp(REToken c) {
     switch (c.symbol) {
         case RE_STAR:
         case RE_PLUS:
@@ -121,14 +113,14 @@ bool isOp(Token c) {
     return false;
 }
 
-Token* in2post(Token* input) {
+REToken* in2post(REToken* input) {
     int len = tokensLength(input);
-    Token dummy;
-    Token* opstack[2048];
+    REToken dummy;
+    REToken* opstack[2048];
     int sp = 0;
-    Token* fixed = &dummy;
+    REToken* fixed = &dummy;
     int j = 0;
-    for (Token* it = input; it != NULL; it = it->next) {
+    for (REToken* it = input; it != NULL; it = it->next) {
         if (it->symbol == RE_LPAREN)
             opstack[sp++] = it;
         else if (isOp(*it)) {
@@ -168,11 +160,11 @@ Token* in2post(Token* input) {
     return dummy.next;;
 }
 
-re_ast* makeTree(Token* tokens) {
+re_ast* makeTree(REToken* tokens) {
     int len = tokensLength(tokens);
     re_ast* st[len];
     int sp = 0;
-    for (Token* it = tokens; it != NULL; it = it->next) {
+    for (REToken* it = tokens; it != NULL; it = it->next) {
             if (isOp(*it)) {
                 re_ast* n = makeNode(1, *it);
                 switch (it->symbol) {
@@ -216,11 +208,11 @@ re_ast* makeTree(Token* tokens) {
 re_ast* re2ast(char* regex) {
     /*
     char* explicitConcat = addConCat(regex);  <- insert explicit concat operators to regex string
-    Token* tokenized = tokenize(explicitConcat); <- convert string to list of tokens
-    Token* postfix = in2post(tokenized);        <- convert token list from infix to postfix form via shunting yard
+    REToken* tokenized = tokenize(explicitConcat); <- convert string to list of tokens
+    REToken* postfix = in2post(tokenized);        <- convert token list from infix to postfix form via shunting yard
     re_ast* ast = makeTree(postfix);         <- create AST from postfix expression
     */
-    Token* tokens = in2post(tokenize(addConCat(regex)));
+    REToken* tokens = in2post(tokenize(addConCat(regex)));
     re_ast* ast = makeTree(tokens);
     freeTokenStream(tokens);
     return ast;

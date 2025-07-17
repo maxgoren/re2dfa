@@ -6,8 +6,8 @@ char* RESymbolStr[] = {
     "CONCAT", "OR", "EPSILON", "NONE"
 };
 
-Token* makeToken(enum RESymbol sym, char ch) {
-    Token* nt = malloc(sizeof(Token));
+REToken* makeToken(enum RESymbol sym, char ch) {
+    REToken* nt = malloc(sizeof(REToken));
     nt->ch = ch;
     if (sym == RE_CCL) {
         nt->ccl = malloc(sizeof(char)*128);
@@ -38,8 +38,8 @@ bool is_special(char c) {
 }
 
 
-Token* tokenize(char* str) {
-    Token header; Token* t = &header;
+REToken* tokenize(char* str) {
+    REToken header; REToken* t = &header;
     int sp = 0;
     for (int i = 0; str[i] != '\0'; i++) { 
         if (str[i] == '\\') {
@@ -73,8 +73,13 @@ Token* tokenize(char* str) {
                     t = t->next; 
                 } break;
                 case '*': { 
-                    t->next = makeToken(RE_STAR, str[i]);
-                    t = t->next;  
+                    if (str[i-1] != '\\') {
+                        t->next = makeToken(RE_STAR, str[i]);
+                        t = t->next;
+                    } else {
+                        t->next = makeToken(RE_CHAR, '*');
+                        t = t->next;
+                    }
                 } break;
                 case '?': { 
                     t->next = makeToken(RE_QUESTION, str[i]);
@@ -122,17 +127,17 @@ Token* tokenize(char* str) {
     return header.next;
 }
 
-int tokensLength(Token* list) {
+int tokensLength(REToken* list) {
     int len = 0;
-    for (Token* it = list; it != NULL; it = it->next, len++);
+    for (REToken* it = list; it != NULL; it = it->next, len++);
     return len;
 }
 
-char* toString(Token* tokens) {
+char* toString(REToken* tokens) {
     int len = 1024;
     char* asStr = malloc(sizeof(char)*len);
     int n = 0;
-    for (Token* it = tokens; it != NULL && n < len; it = it->next) {
+    for (REToken* it = tokens; it != NULL && n < len; it = it->next) {
         if (it->symbol == RE_CCL) {
             for (char *sp = it->ccl; *sp && n < len; sp++) {
                 asStr[n++] = *sp;
@@ -145,16 +150,16 @@ char* toString(Token* tokens) {
     return asStr;
 }
 
-void printTokenStream(Token* tokens) {
-    for (Token* it = tokens; it != NULL; it = it->next) {
+void printTokenStream(REToken* tokens) {
+    for (REToken* it = tokens; it != NULL; it = it->next) {
         printf("<%d, %c>\n", it->symbol, it->ch);
     }
 }
 
-void freeTokenStream(Token* tokens) {
-    Token* head = tokens;
+void freeTokenStream(REToken* tokens) {
+    REToken* head = tokens;
     while (head != NULL) {
-        Token* x = head;
+        REToken* x = head;
         head = head->next;
         x->next = NULL;
         free(x);

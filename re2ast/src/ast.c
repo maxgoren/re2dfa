@@ -1,6 +1,6 @@
 #include "ast.h"
 
-re_ast* makeNode(int type, Token tk) {
+re_ast* makeNode(int type, REToken tk) {
     re_ast* node = malloc(sizeof(re_ast));
     node->type = type;
     node->token = tk;

@@ -1,5 +1,10 @@
 #ifndef tokens_h
 #define tokens_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,9 +23,9 @@ typedef struct Token_ {
     char ch;
     char *ccl;
     struct Token_* next;
-} Token;
+} REToken;
 
-Token* makeToken(enum RESymbol sym, char ch);
+REToken* makeToken(enum RESymbol sym, char ch);
 
 bool is_digit(char c);
 
@@ -28,14 +33,16 @@ bool is_char(char c);
 
 bool is_special(char c);
 
-Token* tokenize(char* str);
+REToken* tokenize(char* str);
 
-int tokensLength(Token* list);
+int tokensLength(REToken* list);
 
-char* toString(Token* tokens);
+char* toString(REToken* tokens);
 
-void printTokenStream(Token* tokens);
+void printTokenStream(REToken* tokens);
 
-void freeTokenStream(Token* tokens);
-
+void freeTokenStream(REToken* tokens);
+#ifdef __cplusplus
+}
+#endif
 #endif

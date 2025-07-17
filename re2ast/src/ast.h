@@ -6,11 +6,16 @@
 #include <stdbool.h>
 #include "tokens.h"
 #include "../../src/intset.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct re_ast_ {
     int type;
     int number;
     int tk_token_id;
-    Token token;
+    REToken token;
     Set* firstpos;
     Set* lastpos;
     Set* followpos;
@@ -18,12 +23,16 @@ typedef struct re_ast_ {
     struct re_ast_* right;
 } re_ast;
 
-re_ast* makeNode(int type, Token tk);
+re_ast* makeNode(int type, REToken tk);
 
 void printAST(re_ast* node, int d);
 
 void freeTree(re_ast* node);
 
 re_ast* cloneTree(re_ast* node);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
