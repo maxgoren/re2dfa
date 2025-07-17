@@ -7,6 +7,18 @@ instead outputting a DFA directly by constructing firstpos, lastpos, and followp
 sets for each position in the RE string by performing DFS traversals on
 the augmented AST.
 
+ Dstates is constructed in the usual fashion, with each DFAState containing a set of positions.
+ Dtrans is an array of AVL Trees instead of an 2D array. 
+ 
+ ## Why is Dtrans stored as AVL trees?
+ 
+ This is a design consideration as the intended use is for a lexer which will construct the DFA once and use it many times. 
+ For owlscripts grammar, There are 171 states, with 8,369 transitions. If Dtrans was implemented as a 2d array, it would be 62% empty.
+ seeing as the state with the most transitions has 87, a worst case lookup will take 5 or 6 comparisons. On average, 2 or 3. To me, that
+ is more than an acceptable trade off from O(1) lookup but wasting 62% of allocated memory.
+
+# Aho, Sethi, Ullman Direct DFA Construction
+
 ## Steps
 
 1) A Regular Expression is Augmented with a special "END" marker - '#'.
