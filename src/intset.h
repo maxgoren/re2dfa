@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     int* members;
@@ -22,5 +24,7 @@ void setAdd(Set* set, int value);
 Set* setUnion(Set* a, Set* b);
 bool setsEqual(Set* a, Set* b);
 void printSet(Set* set);
-
+#ifdef __cplusplus
+}
+#endif
 #endif

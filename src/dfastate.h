@@ -1,5 +1,10 @@
 #ifndef dfastate_h
 #define dfastate_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -31,5 +36,7 @@ bool emptyQueue(StateQueue* q);
 void enQueue(StateQueue* q, DFAState* state);
 DFAState* deQueue(StateQueue* q);
 DFAState* peekQueue(StateQueue* q);
-
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,5 +1,10 @@
 #ifndef augmented_ast_h
 #define augmented_ast_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../re2ast/src/ast.h"
 #include "intset.h"
 
@@ -54,5 +59,7 @@ void calcFirstandLastPos(re_ast* node);
 void calcFollowPos(re_ast* node);
 
 void computeFollowPos(re_ast* node);
-
+#ifdef __cplusplus
+}
+#endif
 #endif
