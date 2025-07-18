@@ -7,7 +7,9 @@ re_2_dfa:
 	gcc -c ./src/dfastate.c
 	gcc -c ./src/dfa.c
 	gcc -c ./src/re_to_dfa.c
-	gcc -c ./src/match.c
+	gcc -c ./src/transition.c
+	gcc -c ./lex/match.c
+	gcc -c ./lex/grep.c
 	gcc *.o -o matchdfa
 
 debug:
@@ -18,8 +20,10 @@ debug:
 	gcc -g -c -DDEBUG ./src/followpos.c
 	gcc -g -c -DDEBUG ./src/dfastate.c
 	gcc -g -c -DDEBUG ./src/dfa.c
+	gcc -g -c -DDEBUG ./src/transition.c
 	gcc -g -c -DDEBUG ./src/re_to_dfa.c
-	gcc -g -c -DDEBUG ./src/match.c
+	gcc -g -c -DDEBUG ./lex/match.c
+	gcc -g -c -DDEBUG ./lex/grep.c
 	gcc -g -DDEBUG *.o -o matchdfa
 
 lex_example:
