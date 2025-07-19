@@ -6,6 +6,7 @@ re_2_dfa:
 	gcc -c ./src/followpos.c
 	gcc -c ./src/dfastate.c
 	gcc -c ./src/dfa.c
+	gcc -c ./src/statequeue.c
 	gcc -c ./src/re_to_dfa.c
 	gcc -c ./src/transition.c
 	gcc -c ./lex/match.c
@@ -20,6 +21,7 @@ debug:
 	gcc -g -c -DDEBUG ./src/followpos.c
 	gcc -g -c -DDEBUG ./src/dfastate.c
 	gcc -g -c -DDEBUG ./src/dfa.c
+	gcc -g -c -DDEBUG ./src/statequeue.c
 	gcc -g -c -DDEBUG ./src/transition.c
 	gcc -g -c -DDEBUG ./src/re_to_dfa.c
 	gcc -g -c -DDEBUG ./lex/match.c

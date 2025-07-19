@@ -1,5 +1,5 @@
 #include "dfa.h"
-
+#include "statequeue.h"
 Transition* makeTransition(int from, int to, char ch) {
     Transition* nt = malloc(sizeof(Transition));
     nt->from = from;
@@ -19,7 +19,7 @@ void initDFA(DFA* dfa, int numstates) {
     }
 }
 
-void addState(DFA* dfa, DFAState* state) {
+void pm_addState(DFA* dfa, DFAState* state) {
     dfa->states[state->label] = state;
 }
 
@@ -31,15 +31,15 @@ bool findInCharClass(char* ccl, char input_symbol) {
     return false;
 }
 
-Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol) {
+Set* pm_calculateNextStatesPositions(DFAState* curr_state, char input_symbol) {
     Set* next_states = createSet(nonleaves+1);
     for (int i = 0; i < curr_state->positions->n; i++) {
         int t = curr_state->positions->members[i];
 #ifdef DEBUG
         if (ast_node_table[t]->token.symbol == RE_CCL) {
-            printf("%c in %s?", input_symbol, ast_node_table[t]->token.ccl);
+            printf("%c in %s?\n", input_symbol, ast_node_table[t]->token.ccl);
         } else {
-            printf("%c == %c?",  ast_node_table[t]->token.ch, input_symbol);
+            printf("%c == %c?\n",  ast_node_table[t]->token.ch, input_symbol);
         }
 #endif
         if ((ast_node_table[t]->token.symbol == RE_CCL && findInCharClass(ast_node_table[t]->token.ccl, input_symbol)) || 
@@ -50,7 +50,7 @@ Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol) {
     return next_states;
 }
 
-int findStateByPositions(DFA* dfa, Set* next_states) {
+int pm_findStateByPositions(DFA* dfa, Set* next_states) {
     for (int i = 1; i <= dfa->numstates; i++) {
         if (setsEqual(next_states, dfa->states[i]->positions)) {
             return i;
@@ -59,7 +59,7 @@ int findStateByPositions(DFA* dfa, Set* next_states) {
     return -1;
 }
 
-int nextStateNum(DFA* dfa) {
+int pm_nextStateNum(DFA* dfa) {
     return ++dfa->numstates;
 }
 
@@ -73,9 +73,9 @@ DFA buildDFA(re_ast* ast, char* re) {
     }
     DFA dfa;
     StateQueue fq;
-    initAlphabet(ast, alphabet, re);
+    pm_initAlphabet(ast, alphabet, re);
     initDFA(&dfa,numleaves+1);
-    addState(&dfa, createState(nextStateNum(&dfa), copySet(ast->firstpos)));
+    pm_addState(&dfa, createState(pm_nextStateNum(&dfa), copySet(ast->firstpos)));
 
     initQueue(&fq);
     enQueue(&fq,  dfa.states[1]);
@@ -85,17 +85,17 @@ DFA buildDFA(re_ast* ast, char* re) {
 #ifdef DEBUG
             printf("Input Symbol: %c\n", *input_symbol);
 #endif
-            Set* next_states = calculateNextStatesPositions(curr_state, *input_symbol);
+            Set* next_states = pm_calculateNextStatesPositions(curr_state, *input_symbol);
             if (!isSetEmpty(next_states)) {
-                if ((found = findStateByPositions(&dfa, next_states)) > -1) {
+                if ((found = pm_findStateByPositions(&dfa, next_states)) > -1) {
                     dfa.dtrans[curr_state->label] = addTransition(dfa.dtrans[curr_state->label], curr_state->label, dfa.states[found]->label, *input_symbol);
                     freeSet(next_states);
 #ifdef DEBUG                    
                     printf("State Already Exists, Adding Transition:  %d - (%c) - %d\n", curr_state->label, *input_symbol, dfa.states[found]->label);
 #endif
                 } else {
-                    DFAState* new_state = createState(nextStateNum(&dfa), copySet(next_states)); 
-                    addState(&dfa, new_state);
+                    DFAState* new_state = createState(pm_nextStateNum(&dfa), copySet(next_states)); 
+                    pm_addState(&dfa, new_state);
                     dfa.dtrans[curr_state->label] = addTransition(dfa.dtrans[curr_state->label], curr_state->label, new_state->label, *input_symbol);
                     enQueue(&fq, new_state);
 #ifdef DEBUG
@@ -108,12 +108,12 @@ DFA buildDFA(re_ast* ast, char* re) {
         }
     }
     for (int i = 1; i <= dfa.numstates; i++) {
-        dfa.states[i] = markAcceptState(dfa.states[i]);
+        dfa.states[i] = pm_markAcceptState(dfa.states[i]);
     }
     return dfa;
 }
 
-DFAState* markAcceptState(DFAState* next_state) {
+DFAState* pm_markAcceptState(DFAState* next_state) {
     for (int j = 0; j < next_state->positions->n; j++) {
         int pos = next_state->positions->members[j];
         if (ast_node_table[pos]->token.ch == '#')  {      
@@ -143,7 +143,7 @@ void printDFA(DFA dfa) {
         while (stsp > 0) {
             it = st[stsp--];
             if (it != NULL) {
-                printf("{%d ->(%c)-> %d}", it->from, it->ch, it->to);
+                printf("{%d ->(%c)-> %d} ", it->from, it->ch, it->to);
                 tc++;
                 st[++stsp] = it->right;
                 st[++stsp] = it->left; 
@@ -162,7 +162,7 @@ void printDFA(DFA dfa) {
     printf("Possible Transitions: %d\n",(dfa.numstates+1)*128);
 }
 
-int symbolIsInAlphabet(char* str, int n, char c) {
+int pm_symbolIsInAlphabet(char* str, int n, char c) {
     for (int i = 0; i < n; i++) {
         if (str[i] == c)
             return i;
@@ -171,13 +171,13 @@ int symbolIsInAlphabet(char* str, int n, char c) {
 }
 
 
-void initAlphabet(re_ast* ast, char* alphabet,  char* re) {
-    int k = 0, p = 0;
+void pm_initAlphabet(re_ast* ast, char* alphabet,  char* re) {
+    int k = 0;
 #ifdef DEBUG
     printf("Getting alphabet from %s\n", re);
 #endif
     for (int i = 0; re[i]; i++) {
-        if (re[i] != '#' && (is_char(re[i]) || is_digit(re[i]) || is_special(re[i])) && symbolIsInAlphabet(alphabet, k, re[i]) == -1)
+        if (re[i] != '#' && (is_char(re[i]) || is_digit(re[i]) || is_special(re[i])) && pm_symbolIsInAlphabet(alphabet, k, re[i]) == -1)
             alphabet[k++] = re[i];
     }
 #ifdef DEBUG

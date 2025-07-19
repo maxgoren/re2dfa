@@ -17,25 +17,10 @@ typedef struct {
     Set* positions;
 } DFAState;
 
-typedef struct qnode_ {
-    DFAState* state;
-    struct qnode_* next;
-} qnode;
-
-typedef struct {
-    qnode* head;
-    qnode* tail;
-    int count;
-} StateQueue;
-
-void initDState(DFAState* state, int statenum);
+void      initDState(DFAState* state, int statenum);
 DFAState* createState(int statenum, Set* positions);
-qnode* makeQueueNode(DFAState* state);
-void initQueue(StateQueue* q);
-bool emptyQueue(StateQueue* q);
-void enQueue(StateQueue* q, DFAState* state);
-DFAState* deQueue(StateQueue* q);
-DFAState* peekQueue(StateQueue* q);
+
+
 #ifdef __cplusplus
 }
 #endif
