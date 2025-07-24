@@ -20,20 +20,17 @@ typedef struct {
     int numstates;
 } DFA;
 
-//public API
+
 void initDFA(DFA* dfa, int numstates);
-DFA buildDFA(re_ast* ast, char* re);
+void initAlphabet(char* alphabet, char* re);
+void addState(DFA* dfa, DFAState* state);
+int nextStateNum(DFA* dfa);
+Set* calculateNextStatesPositions(DFAState* curr_state, char input_symbol, re_ast** ast_node_table);
+int findStateByPositions(DFA* dfa, Set* next_states);
+int symbolIsInAlphabet(char* str, int n, char c);
+DFA buildDFA(re_ast* ast, char* re, re_ast** ast_node_table);
+DFAState* markAcceptState(DFAState* state, re_ast** ast_node_table);
 void printDFA(DFA dfa);
-
-
-//methods for internal use
-void pm_initAlphabet(re_ast* ast, char* alphabet, char* re);
-void pm_addState(DFA* dfa, DFAState* state);
-int  pm_nextStateNum(DFA* dfa);
-Set* pm_calculateNextStatesPositions(DFAState* curr_state, char input_symbol);
-int  pm_findStateByPositions(DFA* dfa, Set* next_states);
-int  pm_symbolIsInAlphabet(char* str, int n, char c);
-DFAState* pm_markAcceptState(DFAState* state);
 
 #ifdef __cplusplus
 }

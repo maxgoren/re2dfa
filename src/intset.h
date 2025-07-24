@@ -15,17 +15,15 @@ typedef struct {
 
 void initSet(Set* set, int maxsize);
 Set* createSet(int size);
+void freeSet(Set* set);
+Set* resizeSet(Set* set, int newsize);
+Set* copySet(Set* a);
 bool isSetEmpty(Set* s);
+int setContains(Set* set, int value);
 void setAdd(Set* set, int value);
-int  setContains(Set* set, int value);
 Set* setUnion(Set* a, Set* b);
 bool setsEqual(Set* a, Set* b);
 void printSet(Set* set);
-Set* resizeSet(Set* set, int newsize);
-Set* copySet(Set* a);
-void freeSet(Set* set);
-void pm_insert(Set* set, int value, int j);
-
 #ifdef __cplusplus
 }
 #endif

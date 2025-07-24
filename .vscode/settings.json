@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "parser.h": "c",
-        "tokens.h": "c"
+        "tokens.h": "c",
+        "re_to_dfa.h": "c"
     }
 }

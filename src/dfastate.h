@@ -17,9 +17,9 @@ typedef struct {
     Set* positions;
 } DFAState;
 
-void      initDState(DFAState* state, int statenum);
-DFAState* createState(int statenum, Set* positions);
 
+void initDState(DFAState* state, int statenum);
+DFAState* createState(int statenum, Set* positions);
 
 #ifdef __cplusplus
 }

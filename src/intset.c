@@ -64,18 +64,13 @@ void setAdd(Set* set, int value) {
     int i = setContains(set, value);
     if (i == -1) {
         int j = set->n;
-        if (j+1 >= set->maxN) resizeSet(set, 2*set->maxN);
-        pm_insert(set, value, j);
+        while (j > 0 && set->members[j-1] > value) {
+            set->members[j] = set->members[j-1];
+            j--;
+        }
+        set->members[j] = value;
+        set->n++;
     }
-}
-
-void pm_insert(Set* set, int value, int j) {
-    while (j > 0 && set->members[j-1] > value) {
-        set->members[j] = set->members[j-1];
-        j--;
-    }
-    set->members[j] = value;
-    set->n++;
 }
 
 bool setsEqual(Set* a, Set* b) {

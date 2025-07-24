@@ -29,15 +29,15 @@ int balanceFactor(Transition* node) {
 }
 
 
-Transition* addTransition(Transition* trans, int from, int to, char ch) {
+Transition* addTransition(Transition* trans, int to, char ch) {
     if (trans == NULL)
-        return makeTransition(from, to, ch);
-    if (trans->from == from && trans->to == to && trans->ch == ch)
+        return makeTransition(to, ch);
+    if (trans->to == to && trans->ch == ch)
             return trans;
     if (ch < trans->ch) {
-        trans->left = addTransition(trans->left, from, to, ch);
+        trans->left = addTransition(trans->left, to, ch);
     } else {
-        trans->right = addTransition(trans->right, from, to, ch);
+        trans->right = addTransition(trans->right,  to, ch);
     }
     trans->height = 1 + max(height(trans->left), height(trans->right));
     if (balanceFactor(trans) < -1) {
@@ -61,6 +61,31 @@ Transition* findTransition(Transition* node, char ch) {
     if (ch < node->ch) return findTransition(node->left, ch);
     else return findTransition(node->right, ch);
     return node;
+}
+
+int printTransitions(Transition* root, int src) {
+    Transition* st[255];
+    int stsp = 0;
+    int tc = 0;
+    Transition* it = root;
+    while (it != NULL) {
+        st[++stsp] = it;
+        it = it->left;
+    } 
+    while (stsp > 0) {
+        it = st[stsp--];
+        if (it != NULL) {
+            printf("{%d -(%c)-> %d} ", src, it->ch, it->to);
+            tc++;
+            it = it->right;
+            while (it != NULL) {
+                st[++stsp] = it;
+                it = it->left;
+            }
+        }
+    }
+    printf("\n");
+    return tc;
 }
 
 void cleanTransTree(Transition* node) {

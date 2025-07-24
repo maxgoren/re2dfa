@@ -1,4 +1,4 @@
-re_2_dfa:
+re_2_dfa_grep:
 	gcc -c ./re2ast/src/ast.c
 	gcc -c ./re2ast/src/parser.c
 	gcc -c ./re2ast/src/tokens.c
@@ -9,9 +9,10 @@ re_2_dfa:
 	gcc -c ./src/statequeue.c
 	gcc -c ./src/re_to_dfa.c
 	gcc -c ./src/transition.c
-	gcc -c ./lex/match.c
-	gcc -c ./lex/grep.c
-	gcc *.o -o matchdfa
+	gcc -c ./grep/match.c
+	gcc -c ./grep/grep.c
+	gcc -c ./grep/util.c
+	gcc *.o -o dfagrep
 
 debug:
 	gcc -g -c -DDEBUG ./re2ast/src/ast.c
@@ -24,21 +25,24 @@ debug:
 	gcc -g -c -DDEBUG ./src/statequeue.c
 	gcc -g -c -DDEBUG ./src/transition.c
 	gcc -g -c -DDEBUG ./src/re_to_dfa.c
-	gcc -g -c -DDEBUG ./lex/match.c
-	gcc -g -c -DDEBUG ./lex/grep.c
-	gcc -g -DDEBUG *.o -o matchdfa
+	gcc -g -c -DDEBUG ./grep/match.c
+	gcc -g -c -DDEBUG ./grep/grep.c
+	gcc -g -c -DDEBUG ./grep/util.c
+	gcc -g -DDEBUG *.o -o dfagrep-debug
 
 lex_example:
 	gcc -c -DDEBUG ./re2ast/src/ast.c 
 	gcc -c -DDEBUG ./re2ast/src/tokens.c 
 	gcc -c -DDEBUG ./re2ast/src/parser.c 
+	gcc -c -DDEBUG ./src/statequeue.c
 	gcc -c -DDEBUG ./src/followpos.c 
 	gcc -c -DDEBUG ./src/dfa.c 
 	gcc -c -DDEBUG ./src/dfastate.c 
 	gcc -c -DDEBUG ./src/intset.c 
 	gcc -c -DDEBUG ./src/re_to_dfa.c 
-	gcc -c -DDEBUG ./ex/lex.c 
-	gcc *.o -o lex
+	gcc -c -DDEBUG ./lex/lex.c 
+	gcc -c ./grep/util.c
+	gcc *.o -o lex_ex
 
 clean:
 	rm *.o
