@@ -74,7 +74,7 @@ DFA buildDFA(re_ast* ast, char* re, re_ast** ast_node_table) {
     DFA dfa;
     StateQueue fq;
     initAlphabet(alphabet, re);
-    initDFA(&dfa,numleaves+1);
+    initDFA(&dfa,748);
     addState(&dfa, createState(nextStateNum(&dfa), copySet(ast->firstpos)));
     initQueue(&fq);
     enQueue(&fq,  dfa.states[1]);

@@ -44,5 +44,8 @@ lex_example:
 	gcc -c ./grep/util.c
 	gcc *.o -o lex_ex
 
+install:
+	mv dfagrep /usr/local/bin
+
 clean:
 	rm *.o
